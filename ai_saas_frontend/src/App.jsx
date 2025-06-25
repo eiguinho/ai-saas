@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import { checkHealth } from "./api/api";
-import './App.css'
+import './styles/App.css'
+import Layout from "./components/layout/Layout";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -17,35 +18,9 @@ function App() {
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-      <div>
-        <h1>Health Check API</h1>
-        {error && <p style={{ color: "red" }}>Erro: {error}</p>}
-        {health ? (
-          <pre>{JSON.stringify(health, null, 2)}</pre>
-        ) : (
-          <p>Carregando...</p>
-        )}
-      </div>
+      <Layout>
+        <h1 className="h1 text-black">Dashboard</h1>
+      </Layout>
     </>
   )
 }

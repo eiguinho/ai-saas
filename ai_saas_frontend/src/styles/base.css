@@ -1,0 +1,165 @@
+@import "tailwindcss";
+@import "./theme.css";
+
+.font-primary {
+  font-family: var(--font-primary);
+}
+
+/* Tipografia */
+.h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-h1);
+}
+
+.h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-h2);
+}
+
+.h3 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-h3);
+}
+
+.body-large {
+  font-size: var(--font-size-body-large);
+  font-weight: var(--font-weight-body-large);
+}
+
+.body-medium {
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-body-medium);
+}
+
+.caption {
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-caption);
+}
+
+/* Cores primárias */
+.bg-primary {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.text-primary-dark {
+  color: var(--color-primary-dark);
+}
+
+.text-accent-purple {
+  color: var(--color-accent-purple);
+}
+
+/* Cores secundárias */
+.bg-gray-light {
+  background-color: var(--color-gray-light);
+}
+
+.text-gray-dark {
+  color: var(--color-gray-dark);
+}
+
+.text-gray-medium {
+  color: var(--color-gray-medium);
+}
+
+/* Status */
+.bg-success {
+  background-color: var(--color-success);
+  color: var(--color-white);
+}
+
+.bg-error {
+  background-color: var(--color-error);
+  color: var(--color-white);
+}
+
+.bg-warning {
+  background-color: var(--color-warning);
+  color: var(--color-white);
+}
+
+/* Espaçamentos exemplo */
+.p-micro {
+  padding: var(--spacing-micro);
+}
+
+.p-small {
+  padding: var(--spacing-small);
+}
+
+.p-medium {
+  padding: var(--spacing-medium);
+}
+
+.p-large {
+  padding: var(--spacing-large);
+}
+
+.p-xlarge {
+  padding: var(--spacing-xlarge);
+}
+
+.p-section {
+  padding: var(--spacing-section);
+}
+
+/* Borda e sombra para Cards */
+.card {
+  background-color: var(--color-white);
+  border-radius: 12px;
+  padding: var(--spacing-large);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+  border: 1px solid #E5E7EB; /* cinza claro */
+}
+
+/* Botões */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border-radius: 8px;
+  padding: var(--spacing-small) var(--spacing-medium);
+  cursor: pointer;
+  border: none;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+  border-radius: 8px;
+  padding: var(--spacing-small) var(--spacing-medium);
+  cursor: pointer;
+}
+
+.btn-tertiary {
+  background-color: var(--color-gray-light);
+  color: var(--color-gray-dark);
+  border-radius: 8px;
+  padding: var(--spacing-small) var(--spacing-medium);
+  cursor: pointer;
+}
+
+/* Inputs */
+.input-base {
+  border-radius: 8px;
+  border: 1px solid var(--color-gray-light);
+  padding: var(--spacing-small);
+  font-family: var(--font-primary);
+  font-size: var(--font-size-body-large);
+  color: var(--color-gray-dark);
+}
+
+.input-base::placeholder {
+  color: var(--color-gray-medium);
+}
+
+.input-base:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 0.3);
+}
