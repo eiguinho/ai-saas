@@ -3,10 +3,16 @@ import { createRoot } from 'react-dom/client'
 import './styles/index.css'
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from './App.jsx'
+import Home from './pages/home/index'
+import { BrowserRouter } from 'react-router-dom';
+import MainRoutes from "./routes";
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+  <BrowserRouter>
+    <MainRoutes></MainRoutes>
+  </BrowserRouter>
+  
+  /*<StrictMode>
+    <Home />
+  </StrictMode>,*/
 )
