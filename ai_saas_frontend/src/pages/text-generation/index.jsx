@@ -1,16 +1,14 @@
-import { useEffect, useState } from 'react';
-import { checkHealth } from "../../api/api";
-import styles from './text.module.css'; // Importando como módulo
+import { useState } from 'react';
+import styles from './text.module.css';
 import Layout from "../../components/layout/Layout";
-import { Plus, Send, Settings, TrendingUp, Image, Video, FileText } from 'lucide-react';
-import { Link } from "react-router-dom";
+import { Image, Send, Settings} from 'lucide-react';
 
 function TextGeneration() {
   const [prompt, setPrompt] = useState("");
   const [result, setResult] = useState("");
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(1000);
-  const [model, setModel] = useState("GPT-4");
+  const [model, setModel] = useState("gpt4");
   const percentage = ((maxTokens - 100) / (2000 - 100)) * 100;
   const percentageTemperature = temperature * 100;
 
@@ -31,7 +29,7 @@ function TextGeneration() {
         <div className={styles.panelGrid}>
           <div className={styles.statCard}>
             <div className={styles.statHeader}>
-              <Settings className="w-5 h-5 text-black" />
+              <Settings className="w-5 h-5 text-black mr-2" />
               <p className={styles.blockSubtitle}>Configurações</p>
             </div>
             <div className="flex flex-col mb-2">
@@ -42,10 +40,10 @@ function TextGeneration() {
                 onChange={(e) => setModel(e.target.value)}
                 className={styles.selectClean}
               >
-                <option value="GPT-4">GPT-4</option>
-                <option value="GPT-3.5">GPT-3.5 Turbo</option>
-                <option value="Gemini">Google Gemini</option>
-                <option value="Cloud">Cloud</option>
+                <option value="gpt4">GPT-4</option>
+                <option value="gpt35">GPT-3.5 Turbo</option>
+                <option value="gemini">Google Gemini</option>
+                <option value="cloud">Cloud</option>
               </select>
             </div>
             <div className="flex flex-col mb-4">
@@ -81,7 +79,7 @@ function TextGeneration() {
             <div className="flex flex-col mt-6">
               <textarea
                   placeholder="Digite seu prompt aqui..."
-                  rows={4}
+                  rows={5}
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   className="w-full pl-4 pr-4 py-2 rounded-lg border text-black border-gray-300 text-sm shadow-sm focus:outline-none focus:shadow-md"

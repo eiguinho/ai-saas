@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { checkHealth } from "../../api/api";
-import styles from './home.module.css'   // ajuste aqui para CSS Modules
+import styles from './home.module.css'
 import Layout from "../../components/layout/Layout";
 import { Plus, TrendingUp, Image, Video, FileText } from 'lucide-react';
 import { Link } from "react-router-dom";
