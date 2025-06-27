@@ -7,12 +7,10 @@ import Home from './pages/home/index'
 import { BrowserRouter } from 'react-router-dom';
 import MainRoutes from "./routes";
 
-createRoot(document.getElementById('root')).render(
-  <BrowserRouter>
-    <MainRoutes></MainRoutes>
-  </BrowserRouter>
-  
-  /*<StrictMode>
-    <Home />
-  </StrictMode>,*/
-)
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <MainRoutes></MainRoutes>
+    </BrowserRouter>
+  </React.StrictMode>
+);

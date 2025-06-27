@@ -12,12 +12,12 @@ import { Link, useLocation } from "react-router-dom";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/" },
-  { label: "Geração de Texto", icon: FileText, path: "/texto" },
-  { label: "Geração de Imagem", icon: Image, path: "/imagem" },
-  { label: "Geração de Vídeo", icon: Video, path: "/video" },
-  { label: "Assinatura", icon: CreditCard, path: "/assinatura" },
-  { label: "Perfil", icon: User, path: "/perfil" },
-  { label: "Configurações", icon: Settings, path: "/configuracoes" },
+  { label: "Geração de Texto", icon: FileText, path: "/text-generation" },
+  { label: "Geração de Imagem", icon: Image, path: "/image-generation" },
+  { label: "Geração de Vídeo", icon: Video, path: "/video-generation" },
+  { label: "Assinatura", icon: CreditCard, path: "/subscription" },
+  { label: "Perfil", icon: User, path: "/profile" },
+  { label: "Configurações", icon: Settings, path: "/settings" },
 ];
 
 export default function Sidebar() {
