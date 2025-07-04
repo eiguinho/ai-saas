@@ -1,5 +1,5 @@
 from config import engine, Base
-from models.user import User, Address
+from models.user import User
 
 print("Criando banco e tabelas...")
 
