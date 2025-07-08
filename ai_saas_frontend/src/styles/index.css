@@ -1,3 +1,29 @@
 @import "tailwindcss";
+@import "react-toastify/dist/ReactToastify.css";
 @import "./theme.css";
 @import "./base.css";
+
+:root {
+  --color-success: #10B981;
+}
+
+.Toastify__toast--success {
+  background-color: white !important;
+  color: var(--color-success) !important;
+  border-left: 4px solid var(--color-success) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  font-weight: 500;
+}
+
+.Toastify__toast--success .Toastify__toast-icon {
+  color: var(--color-success) !important;
+}
+
+.Toastify__close-button {
+  color: var(--color-success) !important;
+  opacity: 1;
+}
+
+.Toastify__progress-bar--success {
+  background: var(--color-success) !important;
+}

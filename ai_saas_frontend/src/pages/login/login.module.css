@@ -1,0 +1,71 @@
+@import "tailwindcss";
+@import "../../styles/theme.css";
+@import "../../styles/base.css";
+
+.btn {
+  background-color: var(--color-success);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: background-color 0.25s ease;
+  outline: none;
+}
+
+.btn:hover {
+  background-color: #0c865e;
+}
+
+.btn:focus,
+.btn:focusVisible {
+  outline: none;
+}
+
+.btnStandard {
+  @apply px-3 py-2 inline-flex items-center gap-4;
+}
+
+.btnWide {
+  @apply block w-full max-w-full px-4 py-2 mt-4 text-center text-sm;
+}
+
+.pageBackground {
+  background-color: var(--color-success);
+  @apply min-h-screen flex items-center justify-center;
+}
+
+.linkSuccess {
+  color: var(--color-success);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.linkSuccess:hover {
+  color: #0c865e; /* cor para hover */
+}
+
+/* Variante "wide", tipo um botão */
+.linkSuccessWide {
+  @apply text-sm font-semibold px-1 rounded inline-block;
+  color: var(--color-gray-dark);
+  cursor: pointer;
+  user-select: none;
+}
+
+.title {
+  @apply text-xl font-bold text-gray-900 text-center;
+}
+
+.statCard {
+  @apply bg-white p-6 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:shadow-md;
+  @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2;
+}
+
+.statSubtext {
+  @apply text-gray-medium text-sm py-2 text-center;
+}
+
+.error {
+  @apply text-red-800 text-sm py-2 text-center max-w-xs w-full mx-auto;
+}

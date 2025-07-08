@@ -5,12 +5,17 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import Home from './pages/home/index'
 import { BrowserRouter } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import MainRoutes from "./routes";
+import { ToastContainer } from "react-toastify";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
-      <MainRoutes></MainRoutes>
+    <AuthProvider>
+        <MainRoutes></MainRoutes>
+        <ToastContainer theme="colored" />
+      </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

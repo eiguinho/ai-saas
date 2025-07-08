@@ -4,17 +4,21 @@ import styles from './home.module.css'
 import Layout from "../../components/layout/Layout";
 import { Plus, TrendingUp, Image, Video, FileText } from 'lucide-react';
 import { Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 function Home() {
   const [count, setCount] = useState(0);
   const [health, setHealth] = useState(null);
   const [error, setError] = useState(null);
+  const { user } = useAuth();
+
+  console.log("Usuário logado:", user);
 
   useEffect(() => {
     checkHealth()
       .then(data => setHealth(data))
       .catch(err => setError(err.message));
-  }, []);
+  }, [user]);
 
   return (
       <Layout>
@@ -37,8 +41,10 @@ function Home() {
                 <p className={styles.blockTitle}>Tokens Usados</p>
                 <TrendingUp className="w-4 h-4 text-gray-medium" />
               </div>
-              <p className="text-2xl font-bold">500</p>
-              <p className={`${styles.statSubtext} text-xs`}>de 1000 tokens disponíveis</p>
+              <p className="text-2xl font-bold">{user?.tokens_available || 0}</p>
+              <p className={`${styles.statSubtext} text-xs`}>
+                de {user?.tokensLimit || 1000} tokens disponíveis
+              </p>
             </div>
 
             <div className={styles.statCard}>

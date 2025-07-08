@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/" },
@@ -22,6 +23,7 @@ const navItems = [
 
 export default function Sidebar() {
   const location = useLocation();
+  const { user } = useAuth();
   return (
     <aside className="w-64 bg-primary px-4 top-0 left-0 h-screen flex flex-col justify-between">
       <div>
@@ -46,9 +48,11 @@ export default function Sidebar() {
       </div>
       <div className="border-t border-blue-500 py-4 text-sm">
         <p className="text-sm text-left text-white/60 py-1">
-          Plano: <strong className="text-white/70">Básico</strong>
+          Plano: <strong className="text-white/70">{user?.plan || "Básico"}</strong>
         </p>
-        <p className="text-xs text-left text-blue-200/80">500/1000 tokens usados</p>
+        <p className="text-xs text-left text-blue-200/80">{user
+            ? `${user.tokensUsed || 0}/${user.tokensLimit || 1000} tokens usados`
+            : "0/1000 tokens usados"}</p>
       </div>
     </aside>
   );

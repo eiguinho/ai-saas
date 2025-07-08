@@ -1,5 +1,7 @@
-from flask import Blueprint, request, jsonify, abort
-from extensions import bcrypt, db, jwt_required, create_access_token, get_jwt, get_jwt_identity
+from flask import Blueprint, request, jsonify, make_response
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from extensions import bcrypt, db, jwt_required, create_access_token, get_jwt, get_jwt_identity, limiter
 from utils import add_token_to_blacklist
 from models import User
 import uuid, re
@@ -155,6 +157,7 @@ def delete_user(user_id):
     return jsonify({"message": "Usuário excluído com sucesso"}), 200
 
 @user_api.route("/api/users/login", methods=["POST"])
+@limiter.limit("5 per minute")
 def login():
     data = request.get_json()
 
@@ -169,16 +172,33 @@ def login():
                                                 additional_claims={"role": user.role},
                                                 expires_delta=timedelta(hours=2)
                                             )
-        return jsonify({
+        resp = make_response(jsonify({
             "message": "Login bem-sucedido",
-            "access_token": access_token,
+            "access_token": access_token, #remover dps
             "user": {
                 "id": user.id,
+                "full_name": user.full_name,
                 "username": user.username,
                 "email": user.email,
-                "full_name": user.full_name,   
+                "role": user.role,
+                "plan": user.plan,
+                "tokens_available": user.tokens_available,
+                "payment_method": user.payment_method,
+                "perfil_photo": user.perfil_photo,
+                "is_active": user.is_active,
+                "created_at": user.created_at.isoformat(),
+                "updated_at": user.updated_at.isoformat()
             }
-        }), 200
+        }))
+        resp.set_cookie(
+            "access_token_cookie",               
+            access_token,
+            httponly=True,                  
+            secure=False,                    # ATIVAR DEPOIS
+            samesite="Strict",              # proteção CSRF
+            max_age=60 * 60 * 2             # 2 horas
+        )
+        return resp
     else:
         return jsonify({"error": "Usuário ou senha inválidos"}), 401
 
@@ -189,3 +209,27 @@ def logout():
     expires = 60 * 60 * 2  # 2 horas, igual token expiration
     add_token_to_blacklist(jti, expires)
     return jsonify({"message": "Logout realizado com sucesso"}), 200
+
+@user_api.route("/api/users/me", methods=["GET"])
+@jwt_required()
+def get_current_user():
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+
+    if not user:
+        return jsonify({"error": "Usuário não encontrado"}), 404
+
+    return jsonify({
+        "id": user.id,
+        "full_name": user.full_name,
+        "username": user.username,
+        "email": user.email,
+        "role": user.role,
+        "plan": user.plan,
+        "tokens_available": user.tokens_available,
+        "payment_method": user.payment_method,
+        "perfil_photo": user.perfil_photo,
+        "is_active": user.is_active,
+        "created_at": user.created_at.isoformat(),
+        "updated_at": user.updated_at.isoformat()
+    }), 200

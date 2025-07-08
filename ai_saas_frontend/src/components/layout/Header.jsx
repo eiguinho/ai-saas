@@ -1,6 +1,8 @@
 import { Bell, User, Search } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Header() {
+  const { user } = useAuth();
   return (
     <header className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white w-full">
       {/* Input de busca com ícone */}
@@ -19,8 +21,8 @@ export default function Header() {
           <Bell className="w-4 h-4 text-black" />
         </div>
         <div className="text-right">
-          <p className="text-sm font-medium text-gray-900">João Silva</p>
-          <p className="text-xs text-gray-500">joao@exemplo.com</p>
+          <p className="text-sm font-medium text-gray-900">{user?.full_name || "Usuário"}</p>
+          <p className="text-xs text-gray-500">{user?.email || "email@exemplo.com"}</p>
         </div>
         <div className="p-2 rounded-full hover:bg-gray-100 cursor-pointer transition">
           <User className="w-4 h-4 text-black" />
