@@ -4,10 +4,63 @@ from flask_limiter.util import get_remote_address
 from extensions import bcrypt, db, jwt_required, create_access_token, get_jwt, get_jwt_identity, limiter
 from utils import add_token_to_blacklist
 from models import User
-import uuid, re, os
+from dotenv import load_dotenv
+import uuid, re, os, redis, smtplib
 from datetime import timedelta
+from email.mime.text import MIMEText
 
 user_api = Blueprint("user_api", __name__)
+r = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
+
+load_dotenv()
+
+EMAIL_USER = os.getenv("EMAIL_USER")
+EMAIL_PASS = os.getenv("EMAIL_PASS")
+
+def send_verification_email(email, code):
+    msg = MIMEText(f"Seu código de verificação é: {code}")
+    msg["Subject"] = "Código de verificação - AI SaaS"
+    msg["From"] = EMAIL_USER
+    msg["To"] = email
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(EMAIL_USER, EMAIL_PASS)
+            server.sendmail(EMAIL_USER, [email], msg.as_string())
+    except Exception as e:
+        print("Erro ao enviar email:", e)
+
+@user_api.route("/api/users/request-email-code", methods=["POST"])
+def request_email_code():
+    data = request.get_json()
+    email = data.get("email")
+
+    if not email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        return jsonify({"error": "Email inválido"}), 400
+
+    if User.query.filter_by(email=email).first():
+        return jsonify({"error": "Email já cadastrado"}), 400
+
+    code = str(uuid.uuid4().int)[-6:]
+    r.setex(f"email_code:{email}", timedelta(minutes=10), code)
+    send_verification_email(email, code)
+    return jsonify({"message": "Código enviado com sucesso"}), 200
+
+@user_api.route("/api/users/verify-email-code", methods=["POST"])
+def verify_email_code():
+    data = request.get_json()
+    email = data.get("email")
+    code = data.get("code")
+
+    if not email or not code:
+        return jsonify({"error": "Email e código são obrigatórios"}), 400
+
+    expected = r.get(f"email_code:{email}")
+    if expected != code:
+        return jsonify({"error": "Código inválido ou expirado"}), 400
+
+    r.setex(f"email_verified:{email}", timedelta(minutes=30), "true")
+    return jsonify({"message": "Email verificado com sucesso"}), 200
 
 # GET /api/users/<id> - Detalhe de um usuário
 @user_api.route("/api/users/<user_id>", methods=["GET"])
@@ -71,6 +124,10 @@ def create_user():
         perfil_path = filepath
 
     hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
+    email = data["email"]
+    if r.get(f"email_verified:{email}") != "true":
+        return jsonify({"error": "Email ainda não verificado"}), 400
+    
     new_user = User(
         id=str(uuid.uuid4()),
         full_name=data["full_name"],

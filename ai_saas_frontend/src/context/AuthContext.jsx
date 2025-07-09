@@ -4,6 +4,7 @@ const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/users/me", {
@@ -14,10 +15,11 @@ export function AuthProvider({ children }) {
         return res.json();
       })
       .then((data) => {
-         console.log("Usuário carregado do backend:", data);
-         setUser(data);
+        console.log("Usuário carregado do backend:", data);
+        setUser(data);
       })
-      .catch(() => setUser(null));
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
   }, []);
 
   function loginSuccess(authData) {
@@ -32,7 +34,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loginSuccess, logout }}>
+    <AuthContext.Provider value={{ user, loginSuccess, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

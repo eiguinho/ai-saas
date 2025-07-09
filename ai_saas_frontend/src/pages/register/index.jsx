@@ -143,11 +143,8 @@ function Register() {
                 name="email"
                 placeholder="Email"
                 value={form.email}
-                onChange={handleChange}
-                className={`w-full pl-10 py-2 rounded-lg border text-black text-sm shadow-sm focus:outline-none focus:shadow-md ${
-                  emailError ? "border-red-400" : "border-gray-300"
-                }`}
-                required
+                disabled
+                className="w-full pl-10 py-2 rounded-lg border text-black border-gray-300 text-sm shadow-sm bg-gray-100 cursor-not-allowed"
               />
             </div>
             {emailError && <p className="text-sm text-red-500 mt-1">{emailError}</p>}

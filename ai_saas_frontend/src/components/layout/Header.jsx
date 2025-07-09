@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 export default function Header() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   // Extrai só o nome do arquivo da foto do perfil para montar a URL correta
   const perfilPhoto = user?.perfil_photo;
