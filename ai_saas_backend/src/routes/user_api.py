@@ -4,7 +4,7 @@ from flask_limiter.util import get_remote_address
 from extensions import bcrypt, db, jwt_required, create_access_token, get_jwt, get_jwt_identity, limiter
 from utils import add_token_to_blacklist
 from models import User
-import uuid, re
+import uuid, re, os
 from datetime import timedelta
 
 user_api = Blueprint("user_api", __name__)
@@ -38,39 +38,49 @@ def get_user(user_id):
 # POST /api/users - Criar usuário
 @user_api.route("/api/users", methods=["POST"])
 def create_user():
-    data = request.get_json()
+    data = request.form
+    file = request.files.get("perfil_photo")
+
     def is_valid_email(email):
         return re.match(r"[^@]+@[^@]+\.[^@]+", email)
-    if not is_valid_email(data["email"]):
+
+    if not is_valid_email(data.get("email", "")):
         return jsonify({"error": "Email inválido"}), 400
+
     required_fields = ["full_name", "username", "email", "password"]
     for field in required_fields:
         if field not in data:
             return jsonify({"error": f"Campo obrigatório: {field}"}), 400
-    # Verifica username duplicado
+
     if User.query.filter_by(username=data["username"]).first():
         return jsonify({"error": "Username já existe"}), 400
-    # Verifica email duplicado
     if User.query.filter_by(email=data["email"]).first():
-        return jsonify({"error": "Email já cadastrado"}), 400    
-    # Verifica requisitos senha
+        return jsonify({"error": "Email já cadastrado"}), 400
+
     password = data["password"]
     pattern = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*\W).{8,}$"
     if not re.match(pattern, password):
-        return jsonify({
-            "error": "Senha precisa ter pelo menos 8 caracteres, "
-                     "uma maiúscula, uma minúscula, um número e um caractere especial"
-        }), 400
-  
-    hashed_password = bcrypt.generate_password_hash(data["password"]).decode('utf-8')
+        return jsonify({"error": "Senha fraca"}), 400
+
+    perfil_path = None
+    if file:
+        filename = f"{uuid.uuid4()}_{file.filename}"
+        filepath = os.path.join("static/uploads", filename)
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        file.save(filepath)
+        perfil_path = filepath
+
+    hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
     new_user = User(
         id=str(uuid.uuid4()),
         full_name=data["full_name"],
         username=data["username"],
         email=data["email"],
         password=hashed_password,
-        payment_method=data.get("payment_method")
+        perfil_photo=perfil_path,
+        payment_method=data.get("payment_method"),
     )
+
     db.session.add(new_user)
     db.session.commit()
 

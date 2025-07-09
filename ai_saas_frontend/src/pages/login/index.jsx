@@ -90,7 +90,7 @@ function Login() {
         </form>
         <p className={styles.statSubtext}>
             Não tem conta?
-            <Link to="/cadastrar" className={`${styles.linkSuccess} ${styles.linkSuccessWide}`}>
+            <Link to="/register" className={`${styles.linkSuccess} ${styles.linkSuccessWide}`}>
                 Cadastrar
             </Link>
         </p>

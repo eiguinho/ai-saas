@@ -12,8 +12,6 @@ function Home() {
   const [error, setError] = useState(null);
   const { user } = useAuth();
 
-  console.log("Usuário logado:", user);
-
   useEffect(() => {
     checkHealth()
       .then(data => setHealth(data))
@@ -41,7 +39,7 @@ function Home() {
                 <p className={styles.blockTitle}>Tokens Usados</p>
                 <TrendingUp className="w-4 h-4 text-gray-medium" />
               </div>
-              <p className="text-2xl font-bold">{user?.tokens_available || 0}</p>
+              <p className="text-2xl font-bold">{user?.tokens_available || 1}</p>
               <p className={`${styles.statSubtext} text-xs`}>
                 de {user?.tokensLimit || 1000} tokens disponíveis
               </p>

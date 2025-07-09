@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_limiter.errors import RateLimitExceeded
@@ -57,6 +57,12 @@ def handle_revoked_token(err):
     response = jsonify({"msg": str(err)})
     response.status_code = 401  # Unauthorized
     return response
+
+# Rota para servir imagens de perfil
+@app.route("/static/uploads/<path:filename>")
+def serve_user_photo(filename):
+    uploads_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "static", "uploads"))
+    return send_from_directory(uploads_path, filename)
 
 # Registra blueprint
 app.register_blueprint(user_api)

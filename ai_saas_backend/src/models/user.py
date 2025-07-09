@@ -11,7 +11,7 @@ class User(db.Model):
     password = db.Column(db.String, nullable=False)
     role = db.Column(db.String, default="user")
     plan = db.Column(db.String, default="free")
-    tokens_available = db.Column(db.Integer, default=1000)
+    tokens_available = db.Column(db.Integer, default=0)
     payment_method = db.Column(db.String, nullable=True)
     perfil_photo = db.Column(db.String, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
