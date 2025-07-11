@@ -15,7 +15,7 @@ export default function Profile() {
   const [resendCooldown, setResendCooldown] = useState(120);
   const [canResend, setCanResend] = useState(false);
   const navigate = useNavigate();
-  const { setSecurityVerified } = useAuth();
+  const { securityVerified, setSecurityVerified } = useAuth();
 
   // Função para iniciar o cooldown
   const startCooldown = () => {
@@ -55,6 +55,10 @@ export default function Profile() {
   };
 
   const handleSecurityClick = async () => {
+    if (securityVerified) {
+        navigate("/profile/security");
+        return;
+    }
     setError("");
     setSecurityCode("");
     setShowModal(true);

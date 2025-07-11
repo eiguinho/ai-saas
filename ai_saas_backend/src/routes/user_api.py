@@ -101,6 +101,92 @@ def verify_security_code():
 
     return jsonify({"message": "Código verificado com sucesso"}), 200
 
+@user_api.route("/api/users/verify-password", methods=["POST"])
+@jwt_required()
+def verify_password():
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+
+    if not user:
+        return jsonify({"error": "Usuário inválido"}), 403
+
+    data = request.get_json()
+    password = data.get("password")
+
+    if not password:
+        return jsonify({"error": "Senha é obrigatória"}), 400
+
+    if not bcrypt.check_password_hash(user.password, password):
+        return jsonify({"error": "Senha incorreta"}), 401
+
+    return jsonify({"message": "Senha correta"}), 200
+
+@user_api.route("/api/users/<user_id>/perfil-photo", methods=["PUT"])
+@jwt_required()
+def update_profile_photo(user_id):
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
+
+    if not current_user:
+        return jsonify({"error": "Usuário inválido"}), 403
+
+    # Só pode atualizar a si mesmo ou admin pode atualizar qualquer um
+    if current_user.id != user_id and current_user.role != "admin":
+        return jsonify({"error": "Acesso negado"}), 403
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "Usuário não encontrado"}), 404
+
+    if 'perfil_photo' not in request.files:
+        return jsonify({"error": "Arquivo não enviado"}), 400
+
+    file = request.files['perfil_photo']
+
+    # Validação básica do tipo de arquivo (apenas imagens)
+    if not file.content_type.startswith('image/'):
+        return jsonify({"error": "Arquivo deve ser uma imagem"}), 400
+
+    filename = f"{uuid.uuid4()}_{file.filename}"
+    filepath = os.path.join("static/uploads", filename)
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    file.save(filepath)
+
+    # Atualiza o caminho da foto no banco
+    user.perfil_photo = filepath
+    db.session.commit()
+
+    return jsonify({"message": "Foto de perfil atualizada com sucesso", "perfil_photo": filepath}), 200
+
+@user_api.route("/api/users/<user_id>/perfil-photo", methods=["DELETE"])
+@jwt_required()
+def delete_profile_photo(user_id):
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
+
+    if not current_user:
+        return jsonify({"error": "Usuário inválido"}), 403
+
+    # Só pode deletar a si mesmo ou admin pode deletar qualquer um
+    if current_user.id != user_id and current_user.role != "admin":
+        return jsonify({"error": "Acesso negado"}), 403
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "Usuário não encontrado"}), 404
+
+    if user.perfil_photo:
+        try:
+            if os.path.exists(user.perfil_photo):
+                os.remove(user.perfil_photo)
+        except Exception as e:
+            print(f"Erro ao remover arquivo da foto: {e}")
+
+        user.perfil_photo = None
+        db.session.commit()
+
+    return jsonify({"message": "Foto de perfil removida com sucesso"}), 200
+
 # GET /api/users/<id> - Detalhe de um usuário
 @user_api.route("/api/users/<user_id>", methods=["GET"])
 @jwt_required()
