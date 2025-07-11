@@ -5,6 +5,7 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [securityVerified, setSecurityVerified] = useState(false);
 
   useEffect(() => {
     fetch("/api/users/me", {
@@ -15,7 +16,6 @@ export function AuthProvider({ children }) {
         return res.json();
       })
       .then((data) => {
-        console.log("Usuário carregado do backend:", data);
         setUser(data);
       })
       .catch(() => setUser(null))
@@ -29,12 +29,24 @@ export function AuthProvider({ children }) {
   function logout() {
     fetch("/api/users/logout", {
       method: "POST",
-      credentials: "include", 
-    }).then(() => setUser(null));
+      credentials: "include",
+    }).then(() => {
+    setUser(null);
+    setSecurityVerified(false);
+  });
   }
 
   return (
-    <AuthContext.Provider value={{ user, loginSuccess, logout, loading }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loginSuccess,
+        logout,
+        loading,
+        securityVerified,
+        setSecurityVerified, // NOVO
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

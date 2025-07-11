@@ -51,7 +51,7 @@ export default function Sidebar() {
           Plano: <strong className="text-white/70">{user?.plan || "Básico"}</strong>
         </p>
         <p className="text-xs text-left text-blue-200/80">{user
-            ? `${user.tokens_available || 0}/${user.tokensLimit || 1000} tokens usados`
+            ? `${user?.tokens_available ?? 0}/${user.tokensLimit || 1000} tokens usados`
             : "0/1000 tokens usados"}</p>
       </div>
     </aside>

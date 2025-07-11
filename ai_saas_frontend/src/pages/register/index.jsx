@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import styles from "./register.module.css";
 import { User, LockKeyhole, Mail, Image as ImageIcon, UserCircle } from "lucide-react";
 import { toast } from "react-toastify";
@@ -21,6 +21,16 @@ function Register() {
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*\W).{8,}$/;
+
+  const location = useLocation();
+  const emailFromState = location.state?.email;
+
+  // Preenche o e-mail no form só uma vez
+  useEffect(() => {
+    if (emailFromState) {
+      setForm((prev) => ({ ...prev, email: emailFromState }));
+    }
+  }, [emailFromState]);
 
   useEffect(() => {
     if (form.email && !emailRegex.test(form.email)) {

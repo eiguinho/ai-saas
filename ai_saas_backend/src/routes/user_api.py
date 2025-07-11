@@ -62,6 +62,45 @@ def verify_email_code():
     r.setex(f"email_verified:{email}", timedelta(minutes=30), "true")
     return jsonify({"message": "Email verificado com sucesso"}), 200
 
+@user_api.route("/api/users/send-security-code", methods=["POST"])
+@jwt_required()
+def send_security_code():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({"error": "Usuário não autenticado"}), 401
+
+    email = user.email
+
+    code = str(uuid.uuid4().int)[-6:]
+    r.setex(f"security_code:{email}", timedelta(minutes=10), code)
+
+    send_verification_email(email, code)
+
+    return jsonify({"message": "Código de segurança enviado"}), 200
+
+@user_api.route("/api/users/verify-security-code", methods=["POST"])
+@jwt_required()
+def verify_security_code():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({"error": "Usuário inválido"}), 403
+
+    data = request.get_json()
+    code = data.get("code")
+
+    if not code:
+        return jsonify({"error": "Código é obrigatório"}), 400
+
+    expected_code = r.get(f"security_code:{user.email}")
+    if expected_code != code:
+        return jsonify({"error": "Código incorreto ou expirado"}), 400
+
+    return jsonify({"message": "Código verificado com sucesso"}), 200
+
 # GET /api/users/<id> - Detalhe de um usuário
 @user_api.route("/api/users/<user_id>", methods=["GET"])
 @jwt_required()
