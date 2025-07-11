@@ -1,17 +1,6 @@
 @import "tailwindcss";
-@import "../../styles/theme.css";
-@import "../../styles/base.css";
-
-.btnBlack {
-  background-color: #1a1a1a;
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-weight: 500;
-  border-radius: 8px;
-  transition: background-color 0.25s ease;
-  outline: none;
-}
+@import "../../../styles/theme.css";
+@import "../../../styles/base.css";
 
 .title {
   @apply text-3xl font-bold text-gray-900;
@@ -25,8 +14,8 @@
   @apply text-sm text-black font-medium;
 }
 
-.btnBlack {
-  background-color: #1a1a1a;
+.btn {
+  background-color: var(--color-success);
   color: white;
   border: none;
   cursor: pointer;
@@ -36,16 +25,16 @@
   outline: none;
 }
 
-.btnBlack:hover {
-  @apply bg-neutral-800;
+.btn:hover {
+  background-color: #0c865e;
 }
 
-.btnBlack:focus,
-.btnBlack:focusVisible {
+.btn:focus,
+.btn:focusVisible {
   outline: none;
 }
 
-.btnBlackStandard {
+.btnStandard {
   @apply px-3 py-2 inline-flex items-center gap-4;
 }
 
@@ -53,6 +42,10 @@
   @apply grid gap-5;
   grid-template-columns: 1fr 2fr;
   align-items: start;
+}
+
+.atentionCard {
+  @apply bg-white p-3 rounded-xl border border-gray-300 shadow-sm focus:outline-none focus:shadow-md flex items-center gap-3;
 }
 
 .statCard {

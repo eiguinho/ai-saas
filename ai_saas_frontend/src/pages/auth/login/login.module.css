@@ -1,6 +1,6 @@
 @import "tailwindcss";
-@import "../../styles/theme.css";
-@import "../../styles/base.css";
+@import "../../../styles/theme.css";
+@import "../../../styles/base.css";
 
 .btn {
   background-color: var(--color-success);
@@ -11,6 +11,7 @@
   border-radius: 8px;
   transition: background-color 0.25s ease;
   outline: none;
+  margin-bottom: 0.5rem;
 }
 
 .btn:hover {
@@ -63,7 +64,7 @@
 }
 
 .statSubtext {
-  @apply text-gray-medium text-sm py-2 text-center;
+  @apply text-gray-medium text-sm text-center;
 }
 
 .error {

@@ -1,6 +1,6 @@
 @import "tailwindcss";
-@import "../../styles/theme.css";
-@import "../../styles/base.css";
+@import "../../../styles/theme.css";
+@import "../../../styles/base.css";
 
 .title {
   @apply text-3xl font-bold text-gray-900;
@@ -15,7 +15,7 @@
 }
 
 .btn {
-  background-color: var(--color-success);
+  background-color: var(--color-accent-purple);
   color: white;
   border: none;
   cursor: pointer;
@@ -26,7 +26,7 @@
 }
 
 .btn:hover {
-  background-color: #0c865e;
+  background-color: #592baa;
 }
 
 .btn:focus,
@@ -42,10 +42,6 @@
   @apply grid gap-5;
   grid-template-columns: 1fr 2fr;
   align-items: start;
-}
-
-.atentionCard {
-  @apply bg-white p-3 rounded-xl border border-gray-300 shadow-sm focus:outline-none focus:shadow-md flex items-center gap-3;
 }
 
 .statCard {

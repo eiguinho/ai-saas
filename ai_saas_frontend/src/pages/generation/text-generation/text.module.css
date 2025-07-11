@@ -1,6 +1,17 @@
 @import "tailwindcss";
-@import "../../styles/theme.css";
-@import "../../styles/base.css";
+@import "../../../styles/theme.css";
+@import "../../../styles/base.css";
+
+.btnBlack {
+  background-color: #1a1a1a;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: background-color 0.25s ease;
+  outline: none;
+}
 
 .title {
   @apply text-3xl font-bold text-gray-900;
@@ -14,8 +25,8 @@
   @apply text-sm text-black font-medium;
 }
 
-.btn {
-  background-color: var(--color-accent-purple);
+.btnBlack {
+  background-color: #1a1a1a;
   color: white;
   border: none;
   cursor: pointer;
@@ -25,16 +36,16 @@
   outline: none;
 }
 
-.btn:hover {
-  background-color: #592baa;
+.btnBlack:hover {
+  @apply bg-neutral-800;
 }
 
-.btn:focus,
-.btn:focusVisible {
+.btnBlack:focus,
+.btnBlack:focusVisible {
   outline: none;
 }
 
-.btnStandard {
+.btnBlackStandard {
   @apply px-3 py-2 inline-flex items-center gap-4;
 }
 

@@ -8,6 +8,12 @@ export function AuthProvider({ children }) {
   const [securityVerified, setSecurityVerified] = useState(false);
 
   useEffect(() => {
+    const hasToken = document.cookie.includes("access_token_cookie");
+    if (!hasToken) {
+      setLoading(false);
+      return;
+    }
+
     fetch("/api/users/me", {
       credentials: "include",
     })

@@ -5,13 +5,13 @@ import { FlowGuardRoute } from "./components/routes/FlowGuardRoute";
 import { SecurityGuardRoute } from "./components/routes/SecurityGuardRoute";
 
 import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import EmailVerification from "./pages/verify-email";
-import VerifyCode from "./pages/verify-code";
-import TextGeneration from "./pages/text-generation";
-import ImageGeneration from "./pages/image-generation";
-import VideoGeneration from "./pages/video-generation";
+import Login from "./pages/auth/login";
+import Register from "./pages/auth/register";
+import EmailVerification from "./pages/auth/verify-email";
+import VerifyCode from "./pages/auth/verify-code";
+import TextGeneration from "./pages/generation/text-generation";
+import ImageGeneration from "./pages/generation/image-generation";
+import VideoGeneration from "./pages/generation/video-generation";
 import Profile from "./pages/profile";
 import Security from "./pages/profile/security";
 import EditName from "./pages/profile/security/change-name";
@@ -19,6 +19,8 @@ import EditUsername from "./pages/profile/security/change-username";
 import EditPassword from "./pages/profile/security/change-password";
 import EditEmail from "./pages/profile/security/change-email";
 import EditPhotoPanel from "./pages/profile/security/change-photo";
+import ForgotPassword from "./pages/auth/forgot-password";
+import ResetPassword  from "./pages/auth/forgot-password/reset-password";
 
 function MainRoutes(){
   const { user, loading } = useAuth();
@@ -129,6 +131,8 @@ function MainRoutes(){
           </PrivateRoute>
         }
       />
+      <Route path="/login/forgot-password" element={<ForgotPassword />} />
+      <Route path="/login/reset-password/:token" element={<ResetPassword />} />
 
       {/* FLUXO DE CADASTRO */}
       <Route path="/login" element={<Login />} />

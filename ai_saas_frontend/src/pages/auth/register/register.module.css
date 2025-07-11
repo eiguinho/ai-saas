@@ -1,6 +1,6 @@
 @import "tailwindcss";
-@import "../../styles/theme.css";
-@import "../../styles/base.css";
+@import "../../../styles/theme.css";
+@import "../../../styles/base.css";
 
 .btn {
   background-color: var(--color-success);
@@ -35,6 +35,24 @@
   @apply min-h-screen flex items-center justify-center;
 }
 
+.linkSuccess {
+  color: var(--color-success);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.linkSuccess:hover {
+  color: #0c865e; /* cor para hover */
+}
+
+/* Variante "wide", tipo um botão */
+.linkSuccessWide {
+  @apply text-sm font-semibold px-1 rounded inline-block;
+  color: var(--color-gray-dark);
+  cursor: pointer;
+  user-select: none;
+}
+
 .title {
   @apply text-xl font-bold text-gray-900 text-center;
 }
@@ -43,4 +61,12 @@
   @apply bg-white p-6 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:shadow-md;
   @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2;
   @apply w-[520px] max-w-[90%];
+}
+
+.statSubtext {
+  @apply text-gray-medium text-sm py-2 text-center;
+}
+
+.error {
+  @apply text-red-800 text-sm py-2 text-center max-w-xs w-full mx-auto;
 }

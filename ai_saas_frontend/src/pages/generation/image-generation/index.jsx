@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import styles from './image.module.css';
-import Layout from "../../components/layout/Layout";
+import Layout from "../../../components/layout/Layout";
 import { Send, Settings, Image } from 'lucide-react';
 
 function ImageGeneration() {

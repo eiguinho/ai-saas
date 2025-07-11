@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import styles from './video.module.css';
-import Layout from "../../components/layout/Layout";
+import Layout from "../../../components/layout/Layout";
 import { CircleAlert, Send, Settings, Video } from 'lucide-react';
 
 function VideoGeneration() {

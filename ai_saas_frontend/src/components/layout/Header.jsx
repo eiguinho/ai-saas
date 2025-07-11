@@ -1,6 +1,7 @@
 import { Bell, User, Search, Settings, LogOut, CreditCard, HelpCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
@@ -76,31 +77,47 @@ export default function Header() {
           <div className="absolute right-0 top-full translate-y-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden animate-fadeIn origin-top-right text-sm z-50">
             <ul>
               <li>
-                <a href="/profile" className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 transition">
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 transition"
+                  onClick={() => setMenuOpen(false)}
+                >
                   <User className="w-4 h-4 text-gray-600" />
                   Perfil
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/settings" className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 transition">
+                <Link
+                  to="/settings"
+                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 transition"
+                  onClick={() => setMenuOpen(false)}
+                >
                   <Settings className="w-4 h-4 text-gray-600" />
                   Configurações
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/plans" className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 transition">
+                <Link
+                  to="/plans"
+                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 transition"
+                  onClick={() => setMenuOpen(false)}
+                >
                   <CreditCard className="w-4 h-4 text-gray-600" />
                   Planos e Assinaturas
-                </a>
+                </Link>
               </li>
               <li className="px-4 py-2 text-gray-700">
                 Tokens: <span className="font-semibold">{user?.tokens_available ?? 0}</span>
               </li>
               <li>
-                <a href="/help" className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 transition">
+                <Link
+                  to="/help"
+                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 transition"
+                  onClick={() => setMenuOpen(false)}
+                >
                   <HelpCircle className="w-4 h-4 text-gray-600" />
                   Ajuda
-                </a>
+                </Link>
               </li>
               <li>
                 <button

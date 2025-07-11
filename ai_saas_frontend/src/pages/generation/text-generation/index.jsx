@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import styles from './text.module.css';
-import Layout from "../../components/layout/Layout";
+import Layout from "../../../components/layout/Layout";
 import { Image, Send, Settings} from 'lucide-react';
 
 function TextGeneration() {

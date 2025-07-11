@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 import styles from "./login.module.css";
 import { User, LockKeyhole  } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -10,7 +10,7 @@ function Login() {
   const { loginSuccess } = useAuth();
   const navigate = useNavigate();
 
-  const [username, setUsername] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false); // controle do loading no botão
@@ -25,7 +25,7 @@ function Login() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ identifier, password }),
       });
       if (res.status === 429) {
         throw new Error("Você excedeu o limite de tentativas. Tente novamente em alguns minutos.");
@@ -59,10 +59,10 @@ function Login() {
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
                 type="text"
-                placeholder="Username"
+                placeholder="Usuário ou Email"
                 className="w-xs pl-10 py-2 rounded-lg border text-black border-gray-300 text-sm shadow-sm focus:outline-none focus:shadow-md"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 required
                 disabled={loading}
                 />
@@ -94,6 +94,12 @@ function Login() {
                 Cadastrar
             </Link>
         </p>
+          <p className={styles.statSubtext}>
+            Esqueceu a Senha?
+            <Link to="/login/forgot-password" className={`${styles.linkSuccess} ${styles.linkSuccessWide}`}>
+                Recuperar
+            </Link>
+          </p>
       </section>
     </main>
   );
