@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { User, Mail, Lock, ImageIcon, UserCircle2 } from "lucide-react";
+import { User, Mail, Lock, ImageIcon, UserCircle2, ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
 import styles from "../profile.module.css";
 import Layout from "../../../components/layout/Layout";
 
@@ -9,6 +10,10 @@ export default function Security() {
   return (
     <Layout>
       <section className="space-y-6">
+        <Link to="/profile" className={styles.returnLink}>
+          <ArrowLeft className="w-4 h-4 mr-1" />
+          Profile
+        </Link>
         <h1 className={styles.title}>Segurança</h1>
         <div className={styles.panelGrid}>
 

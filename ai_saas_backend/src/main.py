@@ -5,7 +5,7 @@ from flask_limiter.errors import RateLimitExceeded
 from dotenv import load_dotenv
 from extensions import bcrypt, jwt, RevokedTokenError, db, limiter
 from utils import check_if_token_revoked
-from routes import user_api, admin_api
+from routes import user_api, admin_api, auth_api, email_api, profile_api
 import os
 
 load_dotenv()
@@ -65,8 +65,11 @@ def serve_user_photo(filename):
     return send_from_directory(uploads_path, filename)
 
 # Registra blueprint
-app.register_blueprint(user_api)
-app.register_blueprint(admin_api)
+app.register_blueprint(user_api, url_prefix="/api/users")
+app.register_blueprint(admin_api, url_prefix="/api/admin")
+app.register_blueprint(auth_api, url_prefix="/api/auth")
+app.register_blueprint(email_api, url_prefix="/api/email")
+app.register_blueprint(profile_api, url_prefix="/api/users")
 
 if __name__ == "__main__":
     app.run(debug=True)

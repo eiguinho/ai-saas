@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { UserCircle } from "lucide-react";
+import { UserCircle, ArrowLeft } from "lucide-react";
 import Layout from "../../../components/layout/Layout";
 import { useAuth } from "../../../context/AuthContext";
 import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
 import styles from "../profile.module.css";
+import { userRoutes } from "../../../services/apiRoutes";
 
 export default function EditUsername() {
   const { user, loginSuccess } = useAuth();
@@ -27,7 +29,7 @@ export default function EditUsername() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch(`/api/users/${user.id}`, {
+      const res = await fetch(userRoutes.updateUser(user.id), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -38,7 +40,7 @@ export default function EditUsername() {
 
       toast.success("Nome de usuário atualizado com sucesso!");
 
-      const updatedUser = await fetch("/api/users/me", {
+      const updatedUser = await fetch(userRoutes.getCurrentUser(), {
         credentials: "include",
       }).then((res) => res.json());
 
@@ -54,6 +56,18 @@ export default function EditUsername() {
 
   return (
     <Layout>
+      <div className={styles.returnLink}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                <nav className="flex items-center text-sm space-x-1">
+                  <Link to="/profile" className="text-gray-700 hover:text-black">
+                    Profile
+                  </Link>
+                  <span>/</span>
+                  <Link to="/profile/security" className="text-gray-700 hover:text-black">
+                    Security
+                  </Link>
+                </nav>
+              </div>
       <section className="flex flex-col items-center justify-center space-y-6">
         <h1 className={`${styles.title} text-center`}>Atualizar Nome de Usuário</h1>
 

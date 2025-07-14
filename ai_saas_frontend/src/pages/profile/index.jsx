@@ -6,6 +6,7 @@ import styles from "./profile.module.css";
 import Layout from "../../components/layout/Layout";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "react-toastify";
+import { emailRoutes} from "../../services/apiRoutes";
 
 export default function Profile() {
   const [showModal, setShowModal] = useState(false);
@@ -43,7 +44,7 @@ export default function Profile() {
   const requestCode = async () => {
     startCooldown();
     try {
-      const res = await fetch("/api/users/send-security-code", {
+      const res = await fetch(emailRoutes.sendSecurityCode, {
         method: "POST",
         credentials: "include",
       });
@@ -63,7 +64,7 @@ export default function Profile() {
     setSecurityCode("");
     setShowModal(true);
     try {
-      const res = await fetch("/api/users/send-security-code", {
+      const res = await fetch(emailRoutes.sendSecurityCode, {
         method: "POST",
         credentials: "include",
       });
@@ -76,7 +77,7 @@ export default function Profile() {
 
   const verifyCode = async () => {
     try {
-      const res = await fetch("/api/users/verify-security-code", {
+      const res = await fetch(emailRoutes.verifySecurityCode, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

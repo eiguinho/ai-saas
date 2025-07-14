@@ -61,3 +61,7 @@
 .statSubtext {
   @apply text-gray-medium;
 }
+
+.returnLink {
+  @apply flex items-center text-sm text-gray-700 px-2 py-1 rounded-md hover:bg-gray-200 hover:text-black transition w-fit mb-4;
+}

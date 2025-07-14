@@ -6,7 +6,7 @@ from models import User
 admin_api = Blueprint("admin_api", __name__)
 
 # Exemplo: listar todos os usuários (só admin)
-@admin_api.route("/api/admin/users", methods=["GET"])
+@admin_api.route("/users", methods=["GET"])
 @jwt_required()
 @admin_required
 def list_all_users():

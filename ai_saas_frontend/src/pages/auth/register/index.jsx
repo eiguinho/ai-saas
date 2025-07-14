@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import styles from "./register.module.css";
-import { User, LockKeyhole, Mail, Image as ImageIcon, UserCircle } from "lucide-react";
+import { User, LockKeyhole, Mail, Image as ImageIcon, UserCircle, ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
+import { authRoutes } from "../../../services/apiRoutes";
 
 function Register() {
   const navigate = useNavigate();
@@ -80,7 +81,7 @@ function Register() {
       formData.append("perfil_photo", photoFile);
     }
 
-    const res = await fetch("/api/users", {
+    const res = await fetch(authRoutes.register, {
       method: "POST",
       body: formData,
     });
@@ -110,6 +111,10 @@ function Register() {
   return (
     <main className={styles.pageBackground}>
       <section className={styles.statCard}>
+        <Link to="/login" className={styles.loginLink}>
+          <ArrowLeft className="w-4 h-4 mr-1" />
+          Login
+        </Link>
         <h1 className={styles.title}>Cadastro</h1>
         <form onSubmit={handleSubmit}>
           {/* Nome completo */}

@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import Layout from "../../../components/layout/Layout";
 import { toast } from "react-toastify";
-import { Image as ImageIcon, User as UserIcon, Trash2 } from "lucide-react";
+import { Image as ImageIcon, User as UserIcon, Trash2, ArrowLeft } from "lucide-react";
 import styles from "../../profile/profile.module.css";
+import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { userRoutes, profileRoutes } from "../../../services/apiRoutes";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
@@ -51,7 +53,7 @@ export default function EditPhotoPanel() {
       const formData = new FormData();
       formData.append("perfil_photo", photoFile);
 
-      const res = await fetch(`/api/users/${user.id}/perfil-photo`, {
+      const res = await fetch(profileRoutes.updatePhoto(user.id), {
         method: "PUT",
         credentials: "include",
         body: formData,
@@ -64,7 +66,7 @@ export default function EditPhotoPanel() {
 
       toast.success("Foto atualizada com sucesso!");
 
-      const updatedUser = await fetch("/api/users/me", { credentials: "include" }).then((res) => res.json());
+      const updatedUser = await fetch(userRoutes.getCurrentUser(), { credentials: "include" }).then((res) => res.json());
 
       loginSuccess({ user: updatedUser });
       setPhotoFile(null);
@@ -82,7 +84,7 @@ export default function EditPhotoPanel() {
 
     setLoading(true);
     try {
-      const res = await fetch(`/api/users/${user.id}/perfil-photo`, {
+      const res = await fetch(profileRoutes.deletePhoto(user.id), {
         method: "DELETE",
         credentials: "include",
       });
@@ -94,7 +96,7 @@ export default function EditPhotoPanel() {
 
       toast.success("Foto removida com sucesso!");
 
-      const updatedUser = await fetch("/api/users/me", { credentials: "include" }).then((res) => res.json());
+      const updatedUser = await fetch(userRoutes.getCurrentUser(), { credentials: "include" }).then((res) => res.json());
 
       loginSuccess({ user: updatedUser });
       setPhotoFile(null);
@@ -109,6 +111,18 @@ export default function EditPhotoPanel() {
 
   return (
     <Layout>
+      <div className={styles.returnLink}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                <nav className="flex items-center text-sm space-x-1">
+                  <Link to="/profile" className="text-gray-700 hover:text-black">
+                    Profile
+                  </Link>
+                  <span>/</span>
+                  <Link to="/profile/security" className="text-gray-700 hover:text-black">
+                    Security
+                  </Link>
+                </nav>
+              </div>
       <section className="max-w-md mx-auto space-y-6">
         <h1 className={styles.title}>Atualizar Foto de Perfil</h1>
 

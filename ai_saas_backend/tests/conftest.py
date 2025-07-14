@@ -15,12 +15,15 @@ from flask_jwt_extended import decode_token
 @pytest.fixture(scope="module")
 def test_client():
     app.config["TESTING"] = True
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
+    # Use o modo WAL para evitar o erro de "database is locked"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:?mode=wal"
     app.config["WTF_CSRF_ENABLED"] = False
 
     with app.app_context():
+        # Criação do banco de dados
         db.create_all()
-        # Cria um usuário padrão para testes
+        
+        # Criação de um usuário padrão para testes
         hashed_password = bcrypt.generate_password_hash("Senha123!").decode("utf-8")
         user = User(
             id=str(uuid.uuid4()),
@@ -34,8 +37,12 @@ def test_client():
         db.session.add(user)
         db.session.commit()
 
+        # Yield o cliente de testes do Flask
         yield app.test_client()
 
-        # Limpa após testes
+        # Limpeza do banco de dados após os testes
         db.session.remove()
         db.drop_all()
+
+    # Nota: Não é necessário fazer um rollback explícito aqui, 
+    # já que estamos limpando o banco após o "yield".

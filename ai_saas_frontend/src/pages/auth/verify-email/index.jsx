@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./emailVerification.module.css";
-import { Mail } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Mail, ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
+import { emailRoutes } from "../../../services/apiRoutes";
 
 function EmailVerification() {
   const navigate = useNavigate();
@@ -25,7 +27,7 @@ function EmailVerification() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/users/request-email-code", {
+      const res = await fetch(emailRoutes.requestEmailCode, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -51,6 +53,10 @@ function EmailVerification() {
   return (
     <main className={styles.pageBackground}>
       <section className={styles.statCard}>
+        <Link to="/login" className={styles.loginLink}>
+          <ArrowLeft className="w-4 h-4 mr-1" />
+          Login
+        </Link>
         <h1 className={styles.title}>Verificação de Email</h1>
         <form onSubmit={handleSubmit}>
           <div className="w-full my-4">

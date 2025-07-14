@@ -2,7 +2,8 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 import styles from "./forgot.module.css";
-import {  Mail} from "lucide-react";
+import {  Mail, ArrowLeft} from "lucide-react";
+import { authRoutes } from "../../../services/apiRoutes";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -13,7 +14,7 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/users/request-password-reset", {
+      const res = await fetch(authRoutes.requestPasswordReset, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -35,6 +36,10 @@ export default function ForgotPassword() {
   return (
     <main className={styles.pageBackground}>
       <section className={styles.statCard}>
+        <Link to="/login" className={styles.loginLink}>
+          <ArrowLeft className="w-4 h-4 mr-1" />
+          Login
+        </Link>
         <h1 className={styles.title}>Redefinir senha</h1>
         <form onSubmit={handleSubmit}>
           <div className="max-w-md w-full my-4">

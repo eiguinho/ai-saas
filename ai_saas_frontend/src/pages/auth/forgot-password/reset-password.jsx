@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import styles from "./forgot.module.css";
 import { Lock } from "lucide-react";
+import { authRoutes } from "../../../services/apiRoutes";
 
 export default function ResetPassword() {
   const { token } = useParams();
@@ -15,7 +16,7 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
-      const res = await fetch(`/api/users/reset-password/${token}`, {
+      const res = await fetch(authRoutes.resetPassword(token), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),

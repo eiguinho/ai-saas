@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { authRoutes, userRoutes } from "../services/apiRoutes";
 
 const AuthContext = createContext();
 
@@ -14,7 +15,7 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    fetch("/api/users/me", {
+    fetch(userRoutes.getCurrentUser(), {
       credentials: "include",
     })
       .then((res) => {
@@ -33,7 +34,7 @@ export function AuthProvider({ children }) {
   }
 
   function logout() {
-    fetch("/api/users/logout", {
+    fetch(authRoutes.logout, {
       method: "POST",
       credentials: "include",
     }).then(() => {

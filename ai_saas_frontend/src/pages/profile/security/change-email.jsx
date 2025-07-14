@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, X } from "lucide-react";
+import { Mail, X, ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
 import Layout from "../../../components/layout/Layout";
 import styles from "../profile.module.css";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
+import { emailRoutes, userRoutes } from "../../../services/apiRoutes";
 
 export default function EditEmail() {
   const { user, loginSuccess } = useAuth();
@@ -31,7 +33,7 @@ export default function EditEmail() {
     }
 
     try {
-      const res = await fetch("/api/users/request-email-code", {
+      const res = await fetch(emailRoutes.requestEmailCode, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -52,7 +54,7 @@ export default function EditEmail() {
     setVerifying(true);
     setError("");
     try {
-      const res = await fetch("/api/users/verify-email-code", {
+      const res = await fetch(emailRoutes.verifyEmailCode, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, code }),
@@ -71,7 +73,7 @@ export default function EditEmail() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await fetch(`/api/users/${user.id}`, {
+      const res = await fetch(userRoutes.updateUser(user.id), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -81,7 +83,7 @@ export default function EditEmail() {
       if (!res.ok) throw new Error(data.error);
       toast.success("Email atualizado com sucesso!");
 
-      const updatedUser = await fetch("/api/users/me", {
+      const updatedUser = await fetch(userRoutes.getCurrentUser(), {
         credentials: "include",
       }).then((res) => res.json());
 
@@ -111,6 +113,18 @@ export default function EditEmail() {
 
   return (
     <Layout>
+      <div className={styles.returnLink}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          <nav className="flex items-center text-sm space-x-1">
+            <Link to="/profile" className="text-gray-700 hover:text-black">
+              Profile
+            </Link>
+            <span>/</span>
+            <Link to="/profile/security" className="text-gray-700 hover:text-black">
+              Security
+            </Link>
+          </nav>
+        </div>
       <section className="flex flex-col items-center justify-center space-y-6">
         <h1 className={styles.title}>Alterar Email</h1>
 

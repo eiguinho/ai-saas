@@ -44,3 +44,7 @@
   @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2;
   @apply w-[520px] max-w-[90%];
 }
+
+.loginLink {
+  @apply flex items-center text-sm text-gray-700 px-2 py-1 rounded-md hover:bg-gray-200 hover:text-black transition w-fit mb-4;
+}

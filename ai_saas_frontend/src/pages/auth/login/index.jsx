@@ -5,6 +5,7 @@ import styles from "./login.module.css";
 import { User, LockKeyhole  } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
+import { authRoutes } from "../../../services/apiRoutes";
 
 function Login() {
   const { loginSuccess } = useAuth();
@@ -21,7 +22,7 @@ function Login() {
     setLoading(true); // começa a requisição
 
     try {
-      const res = await fetch("/api/users/login", {
+      const res = await fetch(authRoutes.login, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

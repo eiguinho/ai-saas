@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import styles from "./codeVerification.module.css";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
-import { KeyRound } from "lucide-react";
+import { KeyRound, ArrowLeft } from "lucide-react";
+import { emailRoutes } from "../../../services/apiRoutes";
 
 function VerifyCode() {
   const { state } = useLocation();
@@ -25,7 +27,7 @@ function VerifyCode() {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/users/verify-email-code", {
+      const res = await fetch(emailRoutes.verifyEmailCode, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, code }),
@@ -46,6 +48,10 @@ function VerifyCode() {
   return (
     <main className={styles.pageBackground}>
       <section className={styles.statCard}>
+        <Link to="/login" className={styles.loginLink}>
+          <ArrowLeft className="w-4 h-4 mr-1" />
+          Login
+        </Link>
         <h1 className={styles.title}>Verificação de Código</h1>
         <form onSubmit={handleSubmit}>
           <div className="w-full">
