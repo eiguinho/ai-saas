@@ -115,7 +115,7 @@ export default function Profile() {
             <p className={`${styles.statSubtext} text-sm`}>Plano atual e pagamentos</p>
           </Link>
 
-          <Link to="/profile/projects" className={styles.statCard}>
+          <Link to="/workspace/projects" className={styles.statCard}>
             <div className={styles.statHeader}>
               <p className={styles.blockTitle}>Projetos</p>
               <FileText className="w-4 h-4 text-gray-medium" />

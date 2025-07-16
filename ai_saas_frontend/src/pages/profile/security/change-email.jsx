@@ -117,12 +117,14 @@ export default function EditEmail() {
           <ArrowLeft className="w-4 h-4 mr-2" />
           <nav className="flex items-center text-sm space-x-1">
             <Link to="/profile" className="text-gray-700 hover:text-black">
-              Profile
+              Perfil
             </Link>
             <span>/</span>
             <Link to="/profile/security" className="text-gray-700 hover:text-black">
               Security
             </Link>
+            <span>/</span>
+            <span className="text-gray-500">Editar Email</span>
           </nav>
         </div>
       <section className="flex flex-col items-center justify-center space-y-6">

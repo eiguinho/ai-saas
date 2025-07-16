@@ -115,12 +115,14 @@ export default function EditPhotoPanel() {
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 <nav className="flex items-center text-sm space-x-1">
                   <Link to="/profile" className="text-gray-700 hover:text-black">
-                    Profile
+                    Perfil
                   </Link>
                   <span>/</span>
                   <Link to="/profile/security" className="text-gray-700 hover:text-black">
                     Security
                   </Link>
+                  <span>/</span>
+                  <span className="text-gray-500">Editar Foto</span>
                 </nav>
               </div>
       <section className="max-w-md mx-auto space-y-6">

@@ -31,3 +31,21 @@ export const userRoutes = {
 export const adminRoutes = {
   listUsers: () => `${API_BASE}/admin/users`,                    // GET all users (admin only)
 };
+
+export const projectRoutes = {
+  list: `${API_BASE}/projects/`,                     // GET → lista projetos do usuário logado
+  create: `${API_BASE}/projects/`,                   // POST → cria projeto
+  get: (projectId) => `${API_BASE}/projects/${projectId}`,        // GET → detalhes
+  update: (projectId) => `${API_BASE}/projects/${projectId}`,     // PUT → atualizar
+  delete: (projectId) => `${API_BASE}/projects/${projectId}`,     // DELETE → remover
+  addContent: (projectId) => `${API_BASE}/projects/${projectId}/add-content`,   // POST → vincular conteúdo
+  removeContent: (projectId) => `${API_BASE}/projects/${projectId}/remove-content`, // POST → desvincular conteúdo
+  updateContents: (projectId) => `${API_BASE}/projects/${projectId}/update-contents`,
+};
+
+export const generatedContentRoutes = {
+  list: `${API_BASE}/contents/`,                // GET → lista todos conteúdos do usuário
+  create: `${API_BASE}/contents/`,              // POST → criar conteúdo gerado
+  get: (contentId) => `${API_BASE}/contents/${contentId}`,   // GET → detalhes conteúdo
+  delete: (contentId) => `${API_BASE}/contents/${contentId}`, // DELETE → deletar conteúdo
+};

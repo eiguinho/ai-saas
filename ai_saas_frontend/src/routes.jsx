@@ -4,7 +4,7 @@ import { PrivateRoute } from "./components/routes/PrivateRoute";
 import { FlowGuardRoute } from "./components/routes/FlowGuardRoute";
 import { SecurityGuardRoute } from "./components/routes/SecurityGuardRoute";
 
-import Home from "./pages/Home";
+import Home from "./pages/home";
 import Login from "./pages/auth/login";
 import Register from "./pages/auth/register";
 import EmailVerification from "./pages/auth/verify-email";
@@ -21,6 +21,9 @@ import EditEmail from "./pages/profile/security/change-email";
 import EditPhotoPanel from "./pages/profile/security/change-photo";
 import ForgotPassword from "./pages/auth/forgot-password";
 import ResetPassword  from "./pages/auth/forgot-password/reset-password";
+import Projects  from "./pages/workspace/projects";
+import EditProject from "./pages/workspace/projects/edit-project";
+import ModifyContent from "./pages/workspace/projects/modify-content";
 
 function MainRoutes(){
   const { user, loading } = useAuth();
@@ -35,6 +38,30 @@ function MainRoutes(){
         element={
           <PrivateRoute>
             <Home />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/workspace/projects"
+        element={
+          <PrivateRoute>
+            <Projects />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/workspace/projects/:id/edit"
+        element={
+          <PrivateRoute>
+            <EditProject />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/workspace/projects/:id/modify-content"
+        element={
+          <PrivateRoute>
+            <ModifyContent />
           </PrivateRoute>
         }
       />

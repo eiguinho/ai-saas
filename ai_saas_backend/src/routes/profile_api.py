@@ -1,7 +1,5 @@
 from flask import Blueprint, request, jsonify
-from extensions import (
-    db, jwt_required, get_jwt_identity
-)
+from extensions import db, jwt_required, get_jwt_identity
 from models import User
 from dotenv import load_dotenv
 import uuid, os

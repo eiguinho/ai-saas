@@ -1,4 +1,5 @@
-from extensions import redis_client, RevokedTokenError
+from extensions import redis_client
+from flask_jwt_extended.exceptions import RevokedTokenError
 import redis
 
 def add_token_to_blacklist(jti, expires_in):

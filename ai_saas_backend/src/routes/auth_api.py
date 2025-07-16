@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, make_response
 from extensions import (
-    bcrypt, db, jwt_required, create_access_token, get_jwt, get_jwt_identity,
-    limiter, redis_client
+    bcrypt, db, limiter, redis_client,
+    jwt_required, create_access_token, get_jwt, get_jwt_identity
 )
 from utils import add_token_to_blacklist
 from models import User

@@ -9,11 +9,17 @@ export default function Security() {
 
   return (
     <Layout>
+      <div className={styles.returnLink}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          <nav className="flex items-center text-sm space-x-1">
+            <Link to="/profile" className="text-gray-700 hover:text-black">
+              Perfil
+            </Link>
+            <span>/</span>
+            <span className="text-gray-500">Segurança</span>
+          </nav>
+        </div>
       <section className="space-y-6">
-        <Link to="/profile" className={styles.returnLink}>
-          <ArrowLeft className="w-4 h-4 mr-1" />
-          Profile
-        </Link>
         <h1 className={styles.title}>Segurança</h1>
         <div className={styles.panelGrid}>
 

@@ -1,11 +1,11 @@
 from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
 from flask_limiter.errors import RateLimitExceeded
+from flask_jwt_extended.exceptions import RevokedTokenError
 from dotenv import load_dotenv
-from extensions import bcrypt, jwt, RevokedTokenError, db, limiter
+from extensions import bcrypt, jwt, db, limiter, jwt_required, get_jwt_identity, create_access_token
 from utils import check_if_token_revoked
-from routes import user_api, admin_api, auth_api, email_api, profile_api
+from routes import user_api, admin_api, auth_api, email_api, profile_api, project_api, generated_content_api
 import os
 
 load_dotenv()
@@ -70,6 +70,8 @@ app.register_blueprint(admin_api, url_prefix="/api/admin")
 app.register_blueprint(auth_api, url_prefix="/api/auth")
 app.register_blueprint(email_api, url_prefix="/api/email")
 app.register_blueprint(profile_api, url_prefix="/api/users")
+app.register_blueprint(project_api, url_prefix="/api/projects")
+app.register_blueprint(generated_content_api, url_prefix="/api/contents")
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from extensions import jwt_required, get_jwt_identity
+from extensions import jwt_required
 from utils import admin_required
 from models import User
 

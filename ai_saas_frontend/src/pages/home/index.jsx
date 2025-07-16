@@ -1,21 +1,98 @@
-import { useEffect, useState } from 'react'
-import { checkHealth } from "../../api/api";
-import styles from './home.module.css'
+import { useEffect, useState } from "react";
+import styles from "./home.module.css";
 import Layout from "../../components/layout/Layout";
-import { Plus, TrendingUp, Image, Video, FileText } from 'lucide-react';
-import { Link } from "react-router-dom";
+import { Plus, TrendingUp, Image, Video, FileText, X } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { toast } from "react-toastify";
+import { projectRoutes } from "../../services/apiRoutes";
 
 function Home() {
   const [count, setCount] = useState(0);
-  const [health, setHealth] = useState(null);
   const [error, setError] = useState(null);
   const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  // Projetos do usuário
+  const [projects, setProjects] = useState([]);
+  const [projectsThisMonth, setProjectsThisMonth] = useState(0);
+
+  // Modal criação
+  const [showProjectModal, setShowProjectModal] = useState(false);
+  const [projectName, setProjectName] = useState("");
+  const [projectDescription, setProjectDescription] = useState("");
+  const [loadingProject, setLoadingProject] = useState(false);
+  const [errorProject, setErrorProject] = useState("");
+
+  const fetchProjects = async () => {
+    try {
+      const res = await fetch(projectRoutes.list, { credentials: "include" });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || "Erro ao carregar projetos");
+
+      setProjects(data);
+
+      // Filtrar criados neste mês
+      const now = new Date();
+      const thisMonthCount = data.filter((p) => {
+        const createdAt = new Date(p.created_at);
+        return (
+          createdAt.getMonth() === now.getMonth() &&
+          createdAt.getFullYear() === now.getFullYear()
+        );
+      }).length;
+      setProjectsThisMonth(thisMonthCount);
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const createProject = async () => {
+    if (!projectName.trim()) {
+      setErrorProject("O nome do projeto é obrigatório.");
+      return;
+    }
+
+    setLoadingProject(true);
+    setErrorProject("");
+
+    try {
+      const res = await fetch("/api/projects/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          name: projectName,
+          description: projectDescription
+        })
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || "Erro ao criar projeto");
+      }
+
+      const data = await res.json();
+      toast.success("Projeto criado com sucesso!");
+      
+      // Fechar modal e limpar
+      setShowProjectModal(false);
+      setProjectName("");
+      setProjectDescription("");
+
+      // 🔄 Atualizar lista de projetos depois (vamos fazer na etapa 2)
+    } catch (err) {
+      setErrorProject(err.message);
+    } finally {
+      setLoadingProject(false);
+    }
+  };
 
   useEffect(() => {
-    checkHealth()
-      .then(data => setHealth(data))
-      .catch(err => setError(err.message));
+    fetchProjects();
   }, [user]);
 
   return (
@@ -27,7 +104,10 @@ function Home() {
               <h1 className={styles.title}>Dashboard</h1>
               <p className="text-gray-600">Bem-vindo à sua plataforma de IA generativa</p>
             </div>
-            <button className={`${styles.btnBlack} ${styles.btnBlackStandard}`}>
+            <button 
+              onClick={() => setShowProjectModal(true)}
+              className={`${styles.btnBlack} ${styles.btnBlackStandard}`}
+            >
               <Plus className="w-4 h-4" />
               <span className="text-sm">Novo Projeto</span>
             </button>
@@ -45,13 +125,18 @@ function Home() {
               </p>
             </div>
 
-            <div className={styles.statCard}>
+            <div
+              className={`${styles.statCard} cursor-pointer hover:opacity-80`}
+              onClick={() => navigate("/workspace/projects")}
+            >
               <div className={styles.statHeader}>
                 <p className={styles.blockTitle}>Projetos</p>
                 <FileText className="w-4 h-4 text-gray-medium" />
               </div>
-              <p className="text-2xl font-bold">12</p>
-              <p className={`${styles.statSubtext} text-xs`}>+2 novos este mês</p>
+              <p className="text-2xl font-bold">{projects.length}</p>
+              <p className={`${styles.statSubtext} text-xs`}>
+                +{projectsThisMonth} novos este mês
+              </p>
             </div>
 
             <div className={styles.statCard}>
@@ -110,26 +195,91 @@ function Home() {
           {/* Projetos Recentes */}
           <div>
             <h2 className={styles.subTitle}>Projetos Recentes</h2>
-            <div className={`${styles.blockCard} divide-y divide-gray-300`}>
-              {[
-                { title: "Campanha Marketing", type: "Texto", time: "2 horas atrás" },
-                { title: "Logos Empresa", type: "Imagem", time: "1 dia atrás" },
-                { title: "Vídeo Produto", type: "Vídeo", time: "3 dias atrás" },
-              ].map((item, idx) => (
+            <div
+              className={`${styles.blockCard} divide-y divide-gray-300 cursor-pointer`}
+              onClick={() => navigate("/projects")}
+            >
+              {projects.slice(0, 3).map((item) => (
                 <div
-                  key={idx}
+                  key={item.id}
                   className="flex items-center justify-between p-4 hover:bg-gray-50"
                 >
                   <div>
-                    <p className="font-semibold text-black mb-1">{item.title}</p>
-                    <p className={`${styles.statSubtext} text-sm`}>{item.type}</p>
+                    <p className="font-semibold text-black mb-1">{item.name}</p>
+                    <p className={`${styles.statSubtext} text-sm`}>
+                      {item.description || "Sem descrição"}
+                    </p>
                   </div>
-                  <p className={`${styles.statSubtext} text-sm`}>{item.time}</p>
+                  <p className={`${styles.statSubtext} text-sm`}>
+                    {new Date(item.created_at).toLocaleDateString("pt-BR")}
+                  </p>
                 </div>
               ))}
+
+              {projects.length === 0 && (
+                <p className="text-sm text-gray-500 p-4">
+                  Nenhum projeto ainda. Clique em “Novo Projeto” para começar!
+                </p>
+              )}
             </div>
           </div>
         </section>
+        
+        {showProjectModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+            <div className="bg-white rounded-lg p-9 w-full max-w-md shadow-lg relative">
+              <button
+                className="absolute top-3 right-3"
+                onClick={() => setShowProjectModal(false)}
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+
+              <h2 className={styles.subTitle}>Novo Projeto</h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Dê um nome e uma breve descrição para organizar seu conteúdo.
+              </p>
+
+              {/* Nome do projeto */}
+              <div className="mb-3">
+                <label className="text-sm font-medium text-gray-700">Nome</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Campanha de Marketing"
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value)}
+                  className="w-full mt-1 pl-3 py-2 rounded-lg border text-black border-gray-300 text-sm shadow-sm focus:outline-none focus:shadow-md"
+                />
+              </div>
+
+              {/* Descrição do projeto */}
+              <div className="mb-3">
+                <label className="text-sm font-medium text-gray-700">Descrição</label>
+                <textarea
+                  placeholder="Descrição opcional..."
+                  value={projectDescription}
+                  onChange={(e) => setProjectDescription(e.target.value)}
+                  className="w-full mt-1 pl-3 py-2 rounded-lg border text-black border-gray-300 text-sm shadow-sm focus:outline-none focus:shadow-md"
+                  rows="3"
+                />
+              </div>
+
+              {errorProject && (
+                <p className="text-sm text-red-500 mb-2">{errorProject}</p>
+              )}
+
+              <div className="flex justify-end">
+                <button
+                  onClick={createProject}
+                  disabled={loadingProject}
+                  className="bg-black text-white py-2 px-4 rounded-md text-sm hover:opacity-90 transition"
+                >
+                  {loadingProject ? "Criando..." : "Criar Projeto"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </Layout>
   )
 }
