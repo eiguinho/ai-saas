@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import Layout from "../../../components/layout/Layout";
 import styles from "./projects.module.css";
 import { toast } from "react-toastify";
@@ -13,6 +13,7 @@ const TAB_TYPES = ["text", "image", "video"];
 
 export default function ModifyContent() {
   const { id: projectId } = useParams();
+  const navigate = useNavigate();
 
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -22,10 +23,9 @@ export default function ModifyContent() {
   const [project, setProject] = useState(null);
   const [selectedContents, setSelectedContents] = useState([]);
   const [originalContents, setOriginalContents] = useState([]);
-  const [activeTab, setActiveTab] = useState("text"); 
+  const [activeTab, setActiveTab] = useState("text");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Função para truncar texto
   function truncate(text, maxLength) {
     if (!text) return "";
     return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
@@ -47,11 +47,13 @@ export default function ModifyContent() {
         if (!resProject.ok) throw new Error("Erro ao buscar projeto");
         const projectData = await resProject.json();
 
-        const projectContentIds = projectData.contents.map(c =>
+        const projectContentIds = projectData.contents.map((c) =>
           typeof c === "string" ? c : c.id
         );
 
-        const projectContents = contents.filter(c => projectContentIds.includes(c.id));
+        const projectContents = contents.filter((c) =>
+          projectContentIds.includes(c.id)
+        );
 
         setAllContents(contents);
         setProject(projectData);
@@ -68,9 +70,9 @@ export default function ModifyContent() {
 
   const filteredContents = useMemo(() => {
     return allContents
-      .filter(c => c.content_type === activeTab)
-      .filter(c => !selectedContents.some(sel => sel.id === c.id))
-      .filter(c => {
+      .filter((c) => c.content_type === activeTab)
+      .filter((c) => !selectedContents.some((sel) => sel.id === c.id))
+      .filter((c) => {
         if (!searchTerm) return true;
         const searchLower = searchTerm.toLowerCase();
         return (
@@ -83,19 +85,20 @@ export default function ModifyContent() {
   }, [allContents, activeTab, searchTerm, selectedContents]);
 
   function handleAddTemp(content) {
-    setSelectedContents(prev => [...prev, content]);
+    setSelectedContents((prev) => [...prev, content]);
   }
 
   function handleRemoveTemp(content) {
-    setSelectedContents(prev => prev.filter(c => c.id !== content.id));
+    setSelectedContents((prev) => prev.filter((c) => c.id !== content.id));
   }
 
   async function handleSaveChanges() {
     if (saving) return;
     setSaving(true);
     try {
-      const selectedIds = selectedContents.map(c => c.id);
+      const selectedIds = selectedContents.map((c) => c.id);
 
+      // Requisição para atualizar conteúdos vinculados
       const res = await fetch(projectRoutes.updateContents(projectId), {
         method: "POST",
         credentials: "include",
@@ -110,6 +113,9 @@ export default function ModifyContent() {
 
       toast.success("Alterações salvas com sucesso!");
       setOriginalContents([...selectedContents]);
+
+      // Após salvar, redireciona para a lista de projetos
+      navigate("/workspace/projects");
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -185,7 +191,7 @@ export default function ModifyContent() {
         <div className="flex-1 flex flex-col">
           {/* Abas */}
           <div className="flex space-x-4 border-b border-gray-300 mb-4">
-            {TAB_TYPES.map(tab => (
+            {TAB_TYPES.map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -211,7 +217,7 @@ export default function ModifyContent() {
               type="search"
               placeholder="Buscar conteúdos..."
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 py-2 bg-white rounded-lg border text-black border-gray-300 text-sm shadow-sm focus:outline-none focus:shadow-md"
             />
           </div>
@@ -222,7 +228,7 @@ export default function ModifyContent() {
               <p className="text-gray-500 text-sm mt-2">Nenhum conteúdo encontrado.</p>
             )}
             <div className="grid grid-cols-1 gap-4">
-              {filteredContents.map(content => (
+              {filteredContents.map((content) => (
                 <div
                   key={content.id}
                   className="border border-gray-300 rounded p-3 flex flex-col"
@@ -262,7 +268,7 @@ export default function ModifyContent() {
           )}
 
           <ul className="space-y-3">
-            {selectedContents.map(content => (
+            {selectedContents.map((content) => (
               <li
                 key={content.id}
                 className="flex items-center justify-between space-x-2 border-b border-gray-200 pb-2"
@@ -289,7 +295,6 @@ export default function ModifyContent() {
                   </span>
                 </div>
 
-                {/* Botão remover */}
                 <button
                   onClick={() => handleRemoveTemp(content)}
                   className="text-red-500 hover:text-red-700"
@@ -301,16 +306,13 @@ export default function ModifyContent() {
             ))}
           </ul>
 
-          {/* Botão salvar */}
-          {selectedContents.length >= 0 && (
-            <button
-              onClick={handleSaveChanges}
-              disabled={saving}
-              className="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-semibold disabled:opacity-50"
-            >
-              {saving ? "Salvando..." : "Salvar alterações"}
-            </button>
-          )}
+          <button
+            onClick={handleSaveChanges}
+            disabled={saving}
+            className="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-semibold disabled:opacity-50"
+          >
+            {saving ? "Salvando..." : "Salvar alterações"}
+          </button>
         </aside>
       </section>
     </Layout>

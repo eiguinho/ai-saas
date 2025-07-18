@@ -48,15 +48,22 @@ export default function Projects() {
     fetchProjects();
   }, []);
 
-  // Função para formatar data e hora
   const formatDateTime = (dateStr) => {
-    if (!dateStr) return "-";
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", {
+  if (!dateStr) return "-";
+
+  // Se a string não termina com Z nem tem offset, adiciona Z para indicar UTC
+  const isoDateStr = dateStr.match(/Z|[+-]\d{2}:\d{2}$/) ? dateStr : dateStr + "Z";
+
+  const d = new Date(isoDateStr);
+  return (
+    d.toLocaleDateString("pt-BR") +
+    " " +
+    d.toLocaleTimeString("pt-BR", {
       hour: "2-digit",
       minute: "2-digit",
-    });
-  };
+    })
+  );
+};
 
   return (
     <Layout>

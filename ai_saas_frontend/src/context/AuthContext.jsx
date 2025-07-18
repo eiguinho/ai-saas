@@ -9,24 +9,26 @@ export function AuthProvider({ children }) {
   const [securityVerified, setSecurityVerified] = useState(false);
 
   useEffect(() => {
-    const hasToken = document.cookie.includes("access_token_cookie");
-    if (!hasToken) {
-      setLoading(false);
-      return;
+    async function loadUser() {
+      try {
+        const res = await fetch(userRoutes.getCurrentUser(), {
+          credentials: "include",
+        });
+
+        if (!res.ok) {
+          throw new Error("Sessão inválida ou expirada");
+        }
+
+        const data = await res.json();
+        setUser(data);
+      } catch (err) {
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
     }
 
-    fetch(userRoutes.getCurrentUser(), {
-      credentials: "include",
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Falha ao carregar usuário");
-        return res.json();
-      })
-      .then((data) => {
-        setUser(data);
-      })
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
+    loadUser();
   }, []);
 
   function loginSuccess(authData) {

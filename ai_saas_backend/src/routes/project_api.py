@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from extensions import db, jwt_required, get_jwt_identity
 from models import Project, User, GeneratedContent
+from datetime import datetime
 
 project_api = Blueprint("project_api", __name__)
 
@@ -174,6 +175,7 @@ def update_project_contents(project_id):
     
     # Substitui o relacionamento do projeto
     project.contents = valid_contents
+    project.updated_at = datetime.utcnow()
     db.session.commit()
     
     return jsonify({"message": "Conteúdos atualizados com sucesso!"}), 200

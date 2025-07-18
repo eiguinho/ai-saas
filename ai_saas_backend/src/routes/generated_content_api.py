@@ -1,6 +1,12 @@
 from flask import Blueprint, request, jsonify
 from extensions import db, jwt_required, get_jwt_identity
-from models import GeneratedContent, User
+from models import (
+    GeneratedContent,
+    GeneratedTextContent,
+    GeneratedImageContent,
+    GeneratedVideoContent,
+    User
+)
 
 generated_content_api = Blueprint("generated_content_api", __name__)
 
@@ -14,31 +20,67 @@ def create_generated_content():
         return jsonify({"error": "Usuário inválido"}), 403
 
     data = request.get_json()
-    content_type = data.get("content_type")
+    content_type = data.get("content_type")  # text, image, video
     prompt = data.get("prompt")
     model_used = data.get("model_used")
     content_data = data.get("content_data")
     file_path = data.get("file_path")
 
-    if not content_type or not prompt or not model_used:
-        return jsonify({"error": "Campos obrigatórios: content_type, prompt, model_used"}), 400
+    # atributos específicos
+    temperatura = data.get("temperatura")
+    estilo = data.get("estilo")
+    proporcao = data.get("proporcao")
+    duracao = data.get("duracao")
 
-    generated = GeneratedContent(
-        user_id=user.id,
-        content_type=content_type,
-        prompt=prompt,
-        model_used=model_used,
-        content_data=content_data,
-        file_path=file_path
-    )
+    # Validação
+    if not content_type or not prompt or not model_used:
+        return jsonify({
+            "error": "Campos obrigatórios: content_type, prompt, model_used"
+        }), 400
+
+    if content_type == "text":
+        generated = GeneratedTextContent(
+            user_id=user.id,
+            prompt=prompt,
+            model_used=model_used,
+            content_data=content_data,
+            file_path=file_path,
+            temperatura=temperatura
+        )
+    elif content_type == "image":
+        generated = GeneratedImageContent(
+            user_id=user.id,
+            prompt=prompt,
+            model_used=model_used,
+            content_data=content_data,
+            file_path=file_path,
+            estilo=estilo,
+            proporcao=proporcao
+        )
+    elif content_type == "video":
+        generated = GeneratedVideoContent(
+            user_id=user.id,
+            prompt=prompt,
+            model_used=model_used,
+            content_data=content_data,
+            file_path=file_path,
+            estilo=estilo,
+            proporcao=proporcao,
+            duracao=duracao
+        )
+    else:
+        return jsonify({"error": "Tipo inválido, use text, image ou video"}), 400
 
     db.session.add(generated)
     db.session.commit()
 
-    return jsonify({"message": "Conteúdo gerado salvo", "content": generated.to_dict()}), 201
+    return jsonify({
+        "message": "Conteúdo gerado salvo",
+        "content": generated.to_dict()
+    }), 201
 
 
-# Listar conteúdos do usuário logado
+# LISTAR CONTEÚDOS DO USUÁRIO LOGADO
 @generated_content_api.route("/", methods=["GET"])
 @jwt_required()
 def list_generated_contents():
@@ -47,7 +89,7 @@ def list_generated_contents():
     return jsonify([c.to_dict() for c in contents]), 200
 
 
-# Obter detalhes de um conteúdo
+# OBTER DETALHES DE UM CONTEÚDO ESPECÍFICO
 @generated_content_api.route("/<content_id>", methods=["GET"])
 @jwt_required()
 def get_generated_content(content_id):
@@ -62,7 +104,7 @@ def get_generated_content(content_id):
     return jsonify(content.to_dict()), 200
 
 
-# Deletar conteúdo
+# DELETAR CONTEÚDO GERADO
 @generated_content_api.route("/<content_id>", methods=["DELETE"])
 @jwt_required()
 def delete_generated_content(content_id):
