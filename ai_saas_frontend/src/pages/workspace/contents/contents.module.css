@@ -1,0 +1,67 @@
+@import "tailwindcss";
+@import "../../../styles/theme.css";
+@import "../../../styles/base.css";
+
+.btnBlack {
+  background-color: #1a1a1a;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: background-color 0.25s ease;
+  outline: none;
+}
+
+.btnBlack:hover {
+  @apply bg-neutral-800;
+}
+
+.btnBlack:focus,
+.btnBlack:focusVisible {
+  outline: none;
+}
+
+.btnBlackStandard {
+  @apply px-3 py-2 inline-flex items-center gap-4;
+}
+
+.btnBlackWide {
+  @apply block w-full max-w-full px-4 py-2 mt-4 text-center text-sm;
+}
+
+.title {
+  @apply text-3xl font-bold text-gray-900;
+}
+
+.subTitle {
+  @apply text-xl font-semibold text-gray-900 mb-6;
+}
+
+.blockTitle {
+  @apply text-sm text-black font-medium;
+}
+
+.panelGrid {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-5;
+}
+
+.statCard {
+  @apply bg-white p-6 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:shadow-md;
+}
+
+.blockCard {
+  @apply bg-white py-6 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:shadow-md;
+}
+
+.statHeader {
+  @apply flex justify-between items-center mb-6;
+}
+
+.statSubtext {
+  @apply text-gray-medium;
+}
+
+.returnLink {
+  @apply flex items-center text-sm text-gray-700 px-2 py-1 rounded-md hover:bg-gray-200 hover:text-black transition w-fit mb-4;
+}

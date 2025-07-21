@@ -4,8 +4,6 @@ import { useAuth } from "../../context/AuthContext";
 export function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
 
-  console.log("[PrivateRoute] loading:", loading, "user:", user);
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">

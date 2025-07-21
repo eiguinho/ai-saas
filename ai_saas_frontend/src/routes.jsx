@@ -24,6 +24,7 @@ import ResetPassword  from "./pages/auth/forgot-password/reset-password";
 import Projects  from "./pages/workspace/projects";
 import EditProject from "./pages/workspace/projects/edit-project";
 import ModifyContent from "./pages/workspace/projects/modify-content";
+import GeneratedContentsList from "./pages/workspace/contents";
 
 function MainRoutes(){
   const { user, loading } = useAuth();
@@ -46,6 +47,14 @@ function MainRoutes(){
         element={
           <PrivateRoute>
             <Projects />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/workspace/generated-contents"
+        element={
+          <PrivateRoute>
+            <GeneratedContentsList />
           </PrivateRoute>
         }
       />

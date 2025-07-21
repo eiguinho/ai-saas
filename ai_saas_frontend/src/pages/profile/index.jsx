@@ -135,9 +135,9 @@ export default function Profile() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-brightness-50">
           <div className="bg-white rounded-lg p-9 w-full max-w-md shadow-lg relative">
-            <button className="absolute top-3 right-3" onClick={() => setShowModal(false)}>
+            <button className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-100" onClick={() => setShowModal(false)}>
               <X className="w-5 h-5 text-gray-500" />
             </button>
             <h2 className={styles.subTitle}>Verificação de Segurança</h2>
@@ -174,7 +174,7 @@ export default function Profile() {
             <button
               onClick={requestCode}
               disabled={!canResend}
-              className="w-full mt-6 text-sm text-blue-600 hover:underline disabled:opacity-50"
+              className="w-full mt-4 text-sm text-blue-600 hover:underline disabled:opacity-50"
             >
               {canResend ? "Reenviar código" : `Reenviar em ${resendCooldown}s`}
             </button>

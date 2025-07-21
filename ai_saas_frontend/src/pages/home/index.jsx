@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "react-toastify";
 import { projectRoutes } from "../../services/apiRoutes";
+import { generatedContentRoutes } from "../../services/apiRoutes";
 
 function Home() {
   const { user } = useAuth();
@@ -13,6 +14,9 @@ function Home() {
 
   const [projects, setProjects] = useState([]);
   const [projectsThisMonth, setProjectsThisMonth] = useState(0);
+
+  const [contents, setContents] = useState([]);
+  const [contentsThisMonth, setContentsThisMonth] = useState(0);
 
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [projectName, setProjectName] = useState("");
@@ -39,6 +43,31 @@ function Home() {
         );
       }).length;
       setProjectsThisMonth(thisMonthCount);
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const fetchContents = async () => {
+    try {
+      const res = await fetch(generatedContentRoutes.list, { credentials: "include" });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || "Erro ao carregar conteúdos");
+
+      setContents(data);
+
+      // Filtrar os criados no mês atual
+      const now = new Date();
+      const thisMonthCount = data.filter((c) => {
+        const createdAt = new Date(c.created_at);
+        return (
+          createdAt.getMonth() === now.getMonth() &&
+          createdAt.getFullYear() === now.getFullYear()
+        );
+      }).length;
+
+      setContentsThisMonth(thisMonthCount);
     } catch (err) {
       toast.error(err.message);
     }
@@ -93,6 +122,7 @@ function Home() {
   useEffect(() => {
     if (user) {
       fetchProjects();
+      fetchContents();
     }
   }, [user]);
 
@@ -145,13 +175,16 @@ useEffect(() => {
             </p>
           </div>
 
-          <div className={styles.statCard}>
+          <div
+            className={`${styles.statCard} cursor-pointer hover:opacity-80`}
+            onClick={() => navigate("/workspace/generated-contents")}
+          >
             <div className={styles.statHeader}>
               <p className={styles.blockTitle}>Conteúdo Gerado</p>
               <Image className="w-4 h-4 text-gray-medium" />
             </div>
-            <p className="text-2xl font-bold">48</p>
-            <p className={`${styles.statSubtext} text-xs`}>itens criados</p>
+            <p className="text-2xl font-bold">{contents.length}</p>
+            <p className={`${styles.statSubtext} text-xs`}>+{contentsThisMonth} criados este mês</p>
           </div>
         </div>
 
@@ -232,10 +265,10 @@ useEffect(() => {
       </section>
 
       {showProjectModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-brightness-50">
           <div className="bg-white rounded-lg p-9 w-full max-w-md shadow-lg relative">
             <button
-              className="absolute top-3 right-3"
+              className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-100"
               onClick={() => setShowProjectModal(false)}
             >
               <X className="w-5 h-5 text-gray-500" />
