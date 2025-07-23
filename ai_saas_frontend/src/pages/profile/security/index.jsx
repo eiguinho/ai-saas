@@ -10,7 +10,12 @@ export default function Security() {
   return (
     <Layout>
       <div className={styles.returnLink}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center text-gray-700 hover:text-black"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+          </button>
           <nav className="flex items-center text-sm space-x-1">
             <Link to="/profile" className="text-gray-700 hover:text-black">
               Perfil

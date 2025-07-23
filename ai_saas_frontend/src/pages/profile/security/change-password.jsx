@@ -6,11 +6,13 @@ import { useAuth } from "../../../context/AuthContext";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 import styles from "../profile.module.css";
-import { authRoutes, userRoutes } from "../../../services/apiRoutes";
+import { authRoutes, userRoutes, notificationRoutes } from "../../../services/apiRoutes";
+import { useNotifications } from "../../../context/NotificationContext";
 
 export default function EditPassword() {
   const { user, loginSuccess } = useAuth();
   const navigate = useNavigate();
+  const { fetchNotifications } = useNotifications();
 
   const [form, setForm] = useState({
     oldPassword: "",
@@ -80,6 +82,17 @@ export default function EditPassword() {
 
       toast.success("Senha atualizada com sucesso!");
 
+      await fetch(notificationRoutes.create, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+            message: `Sua senha foi alterada!`,
+            link: "/profile"
+          }),
+          });
+      fetchNotifications();
+
       const updatedUser = await fetch(userRoutes.getCurrentUser(), {
         credentials: "include",
       }).then((res) => res.json());
@@ -97,7 +110,12 @@ export default function EditPassword() {
   return (
     <Layout>
       <div className={styles.returnLink}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
+                <button
+                  onClick={() => navigate(-1)}
+                  className="flex items-center text-gray-700 hover:text-black"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                </button>
                 <nav className="flex items-center text-sm space-x-1">
                   <Link to="/profile" className="text-gray-700 hover:text-black">
                     Perfil

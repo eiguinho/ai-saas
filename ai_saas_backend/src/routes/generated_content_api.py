@@ -27,10 +27,10 @@ def create_generated_content():
     file_path = data.get("file_path")
 
     # atributos específicos
-    temperatura = data.get("temperatura")
-    estilo = data.get("estilo")
-    proporcao = data.get("proporcao")
-    duracao = data.get("duracao")
+    temperature = data.get("temperature")
+    style= data.get("style")
+    ratio= data.get("ratio")
+    duration = data.get("duration")
 
     # Validação
     if not content_type or not prompt or not model_used:
@@ -45,7 +45,7 @@ def create_generated_content():
             model_used=model_used,
             content_data=content_data,
             file_path=file_path,
-            temperatura=temperatura
+            temperature=temperature
         )
     elif content_type == "image":
         generated = GeneratedImageContent(
@@ -54,8 +54,8 @@ def create_generated_content():
             model_used=model_used,
             content_data=content_data,
             file_path=file_path,
-            estilo=estilo,
-            proporcao=proporcao
+            style=style,
+            ratio=ratio
         )
     elif content_type == "video":
         generated = GeneratedVideoContent(
@@ -64,9 +64,9 @@ def create_generated_content():
             model_used=model_used,
             content_data=content_data,
             file_path=file_path,
-            estilo=estilo,
-            proporcao=proporcao,
-            duracao=duracao
+            style=style,
+            ratio=ratio,
+            duration=duration
         )
     else:
         return jsonify({"error": "Tipo inválido, use text, image ou video"}), 400

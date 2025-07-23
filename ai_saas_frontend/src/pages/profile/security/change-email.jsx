@@ -6,7 +6,9 @@ import Layout from "../../../components/layout/Layout";
 import styles from "../profile.module.css";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
-import { emailRoutes, userRoutes } from "../../../services/apiRoutes";
+import { emailRoutes, userRoutes, notificationRoutes } from "../../../services/apiRoutes";
+import { useNotifications } from "../../../context/NotificationContext";
+
 
 export default function EditEmail() {
   const { user, loginSuccess } = useAuth();
@@ -21,6 +23,7 @@ export default function EditEmail() {
   const [verifying, setVerifying] = useState(false);
   const [canResend, setCanResend] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(120);
+  const { fetchNotifications } = useNotifications();
 
   const handleRequestCode = async () => {
     setLoadingCode(true);
@@ -83,6 +86,17 @@ export default function EditEmail() {
       if (!res.ok) throw new Error(data.error);
       toast.success("Email atualizado com sucesso!");
 
+      await fetch(notificationRoutes.create, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+            message: `Seu email foi alterado!`,
+            link: "/profile"
+          }),
+          });
+      fetchNotifications();
+
       const updatedUser = await fetch(userRoutes.getCurrentUser(), {
         credentials: "include",
       }).then((res) => res.json());
@@ -114,7 +128,12 @@ export default function EditEmail() {
   return (
     <Layout>
       <div className={styles.returnLink}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center text-gray-700 hover:text-black"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+          </button>
           <nav className="flex items-center text-sm space-x-1">
             <Link to="/profile" className="text-gray-700 hover:text-black">
               Perfil

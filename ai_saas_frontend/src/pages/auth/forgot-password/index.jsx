@@ -37,7 +37,12 @@ export default function ForgotPassword() {
     <main className={styles.pageBackground}>
       <section className={styles.statCard}>
         <Link to="/login" className={styles.loginLink}>
-          <ArrowLeft className="w-4 h-4 mr-1" />
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center text-gray-700 hover:text-black"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+          </button>
           Login
         </Link>
         <h1 className={styles.title}>Redefinir senha</h1>

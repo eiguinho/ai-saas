@@ -236,7 +236,7 @@ useEffect(() => {
           <h2 className={styles.subTitle}>Projetos Recentes</h2>
           <div
             className={`${styles.blockCard} divide-y divide-gray-300 cursor-pointer`}
-            onClick={() => navigate("/projects")}
+            onClick={() => navigate("/workspace/projects")}
           >
             {projects.slice(0, 3).map((item) => (
               <div

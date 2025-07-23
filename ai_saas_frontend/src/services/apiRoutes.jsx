@@ -49,3 +49,11 @@ export const generatedContentRoutes = {
   get: (contentId) => `${API_BASE}/contents/${contentId}`,   // GET → detalhes conteúdo
   delete: (contentId) => `${API_BASE}/contents/${contentId}`, // DELETE → deletar conteúdo
 };
+
+export const notificationRoutes = {
+  list: `${API_BASE}/notifications`,
+  create: `${API_BASE}/notifications`,
+  markRead: `${API_BASE}/notifications/mark-read`, // marca todas
+  markSingle: (id) => `${API_BASE}/notifications/${id}/mark-read`, // marca só 1
+  delete: (id) => `${API_BASE}/notifications/${id}` // delete uma
+};

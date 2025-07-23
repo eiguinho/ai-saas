@@ -53,7 +53,7 @@ class GeneratedTextContent(GeneratedContent):
     __tablename__ = "generated_text_contents"
     
     id = db.Column(db.String, db.ForeignKey("generated_contents.id"), primary_key=True)
-    temperatura = db.Column(db.Float)
+    temperature = db.Column(db.Float)
 
     __mapper_args__ = {
         "polymorphic_identity": "text",
@@ -61,15 +61,15 @@ class GeneratedTextContent(GeneratedContent):
 
     def to_dict(self):
         data = self.base_dict()
-        data.update({"temperatura": self.temperatura})
+        data.update({"temperature": self.temperature})
         return data
 
 class GeneratedImageContent(GeneratedContent):
     __tablename__ = "generated_image_contents"
 
     id = db.Column(db.String, db.ForeignKey("generated_contents.id"), primary_key=True)
-    estilo = db.Column(db.String(50))
-    proporcao = db.Column(db.String(20))
+    style = db.Column(db.String(50))
+    ratio = db.Column(db.String(20))
 
     __mapper_args__ = {
         "polymorphic_identity": "image",
@@ -78,8 +78,8 @@ class GeneratedImageContent(GeneratedContent):
     def to_dict(self):
         data = self.base_dict()
         data.update({
-            "estilo": self.estilo,
-            "proporcao": self.proporcao
+            "style": self.style,
+            "ratio": self.ratio
         })
         return data
 
@@ -87,9 +87,9 @@ class GeneratedVideoContent(GeneratedContent):
     __tablename__ = "generated_video_contents"
 
     id = db.Column(db.String, db.ForeignKey("generated_contents.id"), primary_key=True)
-    estilo = db.Column(db.String(50))
-    proporcao = db.Column(db.String(20))
-    duracao = db.Column(db.Integer)  # em segundos
+    style = db.Column(db.String(50))
+    ratio = db.Column(db.String(20))
+    duration = db.Column(db.Integer)  # em segundos
 
     __mapper_args__ = {
         "polymorphic_identity": "video",
@@ -98,8 +98,8 @@ class GeneratedVideoContent(GeneratedContent):
     def to_dict(self):
         data = self.base_dict()
         data.update({
-            "estilo": self.estilo,
-            "proporcao": self.proporcao,
-            "duracao": self.duracao
+            "eststyleilo": self.style,
+            "ratio": self.ratio,
+            "duration": self.duration
         })
         return data

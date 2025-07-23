@@ -4,8 +4,9 @@ from .generated_content import (
     GeneratedContent,
     GeneratedTextContent,
     GeneratedImageContent,
-    GeneratedVideoContent
+    GeneratedVideoContent,
 )
+from .notification import Notification
 from .associations import project_content_association
 
 __all__ = [
@@ -15,5 +16,6 @@ __all__ = [
     "GeneratedTextContent",
     "GeneratedImageContent",
     "GeneratedVideoContent",
-    "project_content_association"
+    "project_content_association",
+    "Notification"
 ]

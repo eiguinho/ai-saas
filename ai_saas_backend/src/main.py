@@ -5,13 +5,19 @@ from flask_jwt_extended.exceptions import RevokedTokenError
 from dotenv import load_dotenv
 from extensions import bcrypt, jwt, db, limiter, jwt_required, get_jwt_identity, create_access_token
 from utils import check_if_token_revoked
-from routes import user_api, admin_api, auth_api, email_api, profile_api, project_api, generated_content_api
+from routes import user_api, admin_api, auth_api, email_api, profile_api, project_api, generated_content_api, notification_api
 import os
 
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+CORS(
+    app,
+    supports_credentials=True,  
+    origins=["http://localhost:5173"],  # ou "*" se for dev
+    allow_headers=["Content-Type", "Authorization"],
+    methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"]
+)
 
 # Caminho do banco SQLite
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -72,6 +78,7 @@ app.register_blueprint(email_api, url_prefix="/api/email")
 app.register_blueprint(profile_api, url_prefix="/api/users")
 app.register_blueprint(project_api, url_prefix="/api/projects")
 app.register_blueprint(generated_content_api, url_prefix="/api/contents")
+app.register_blueprint(notification_api, url_prefix="/api/notifications")
 
 if __name__ == "__main__":
     app.run(debug=True)

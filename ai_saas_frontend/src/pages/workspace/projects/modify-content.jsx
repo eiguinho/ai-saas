@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import Layout from "../../../components/layout/Layout";
 import styles from "./projects.module.css";
 import { toast } from "react-toastify";
@@ -22,6 +22,7 @@ const TAB_TYPES = ["text", "image", "video"];
 
 export default function ModifyContent() {
   const { id: projectId } = useParams();
+  const navigate = useNavigate();
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
   const [loading, setLoading] = useState(true);
@@ -121,18 +122,18 @@ export default function ModifyContent() {
       });
 
     if (filterModel) filtered = filtered.filter((c) => c.model_used === filterModel);
-    if (filterStyle) filtered = filtered.filter((c) => c.estilo === filterStyle);
-    if (filterRatio) filtered = filtered.filter((c) => c.proporcao === filterRatio);
+    if (filterStyle) filtered = filtered.filter((c) => c.style === filterStyle);
+    if (filterRatio) filtered = filtered.filter((c) => c.ratio === filterRatio);
 
     if (filterTempMin)
-      filtered = filtered.filter((c) => !c.temperatura || c.temperatura >= parseFloat(filterTempMin));
+      filtered = filtered.filter((c) => !c.temperature || c.temperature >= parseFloat(filterTempMin));
     if (filterTempMax)
-      filtered = filtered.filter((c) => !c.temperatura || c.temperatura <= parseFloat(filterTempMax));
+      filtered = filtered.filter((c) => !c.temperature || c.temperature <= parseFloat(filterTempMax));
 
     if (filterDurMin)
-      filtered = filtered.filter((c) => !c.duracao || c.duracao >= parseInt(filterDurMin));
+      filtered = filtered.filter((c) => !c.duration || c.duration >= parseInt(filterDurMin));
     if (filterDurMax)
-      filtered = filtered.filter((c) => !c.duracao || c.duracao <= parseInt(filterDurMax));
+      filtered = filtered.filter((c) => !c.duration || c.duration <= parseInt(filterDurMax));
 
     if (dateFilter) {
       const now = new Date();
@@ -148,7 +149,7 @@ export default function ModifyContent() {
     if (sortBy === "oldest") filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
     if (sortBy === "model") filtered.sort((a, b) => (a.model_used || "").localeCompare(b.model_used || ""));
     if (sortBy === "duration" && activeTab === "video")
-      filtered.sort((a, b) => (a.duracao || 0) - (b.duracao || 0));
+      filtered.sort((a, b) => (a.duration || 0) - (b.duration || 0));
 
     return filtered;
   }, [
@@ -260,8 +261,13 @@ export default function ModifyContent() {
     <Layout>
       {/* Breadcrumb */}
       <div className={styles.returnLink}>
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        <nav className="flex items-center text-sm space-x-1">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center text-gray-700 hover:text-black"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </button>
+        <nav className="flex items-center text-sm space-x-1 ml-4">
           <Link to="/workspace/projects" className="text-gray-700 hover:text-black">
             Projetos
           </Link>
@@ -607,14 +613,14 @@ export default function ModifyContent() {
             {/* Detalhes do conteúdo */}
             <div className="text-sm text-gray-700 space-y-2">
               <p><strong>Modelo:</strong> {selectedContentModal.model_used || "—"}</p>
-              {selectedContentModal.estilo && (
-                <p><strong>Estilo:</strong> {selectedContentModal.estilo}</p>
+              {selectedContentModal.style && (
+                <p><strong>Estilo:</strong> {selectedContentModal.style}</p>
               )}
-              {selectedContentModal.proporcao && (
-                <p><strong>Proporção:</strong> {selectedContentModal.proporcao}</p>
+              {selectedContentModal.ratio && (
+                <p><strong>Proporção:</strong> {selectedContentModal.ratio}</p>
               )}
-              {selectedContentModal.duracao && (
-                <p><strong>Duração:</strong> {selectedContentModal.duracao}s</p>
+              {selectedContentModal.duration && (
+                <p><strong>Duração:</strong> {selectedContentModal.duration}s</p>
               )}
               <p><strong>Criado em:</strong> {new Date(selectedContentModal.created_at).toLocaleString()}</p>
             </div>

@@ -1,21 +1,81 @@
 import { useState } from 'react';
 import styles from './image.module.css';
 import Layout from "../../../components/layout/Layout";
-import { Send, Settings, Image } from 'lucide-react';
+import { Loader2, Send, Settings, Image as ImageIcon } from 'lucide-react';
+import { toast } from 'react-toastify';
+import { generatedContentRoutes, notificationRoutes } from '../../../services/apiRoutes';
+import { useNotifications } from "../../../context/NotificationContext";
 
 function ImageGeneration() {
   const [prompt, setPrompt] = useState("");
   const [result, setResult] = useState("");
-  const [temperature, setTemperature] = useState(0.7);
-  const [maxTokens, setMaxTokens] = useState(1000);
   const [model, setModel] = useState("dalle");
   const [style, setStyle] = useState("realist");
   const [ratio, setRatio] = useState("square");
+  const [loading, setLoading] = useState(false);
+  const { fetchNotifications } = useNotifications();
 
-  const handleGenerate = () => {
-    // Aqui futuramente integrar com API
-    setResult(`Resultado gerado com prompt: "${prompt}"`);
-  };
+  const simulateDelay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  async function handleGenerate() {
+    if (!prompt.trim()) {
+      toast.warning("Digite um prompt antes de gerar!");
+      return;
+    }
+
+    setLoading(true);
+    setResult("");
+
+    try {
+      await simulateDelay(2000);
+      // Caminho simulado da imagem
+      const simulatedImagePath = "/static/uploads/image.png";
+
+      // Montar a descrição usada (prompt + estilo + proporção)
+      const simulatedDescription = `Imagem gerada para o prompt: "${prompt}"
+Modelo: ${model}, Estilo: ${style}, Proporção: ${ratio}`;
+
+      // Enviar para backend com file_path fixo
+      const res = await fetch(generatedContentRoutes.create, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content_type: "image",
+          prompt,
+          model_used: model,
+          temperature: null, // não faz sentido pra imagem
+          content_data: simulatedDescription, // descrição salva no banco
+          file_path: simulatedImagePath // caminho fixo para simulação
+        }),
+      });
+
+      if (!res.ok) throw new Error("Erro ao salvar imagem gerada");
+      const data = await res.json();
+
+      // Mostra a URL salva (ou usa a simulada)
+      setResult(data.content.file_path || simulatedImagePath);
+      toast.success("Imagem gerada (simulada) e salva com sucesso!");
+
+      await fetch(notificationRoutes.create, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+        message: `Imagem gerada com sucesso: "${
+          prompt.length > 40 ? prompt.slice(0, 40) + "..." : prompt
+        }"`,
+        link: "/workspace/generated-contents"
+      }),
+      });
+      fetchNotifications();
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
 
   return (
     <Layout>
@@ -93,9 +153,13 @@ function ImageGeneration() {
                 <p className={`${styles.statSubtext} text-sm`}>
                   {prompt.length} caracteres
                 </p>
-                <button className={`${styles.btn} ${styles.btnStandard}`}>
-                <Send className="w-4 h-4" />
-                <span className="text-sm">Gerar Imagem</span>
+                <button
+                  onClick={handleGenerate}
+                  disabled={loading}
+                  className={`${styles.btn} ${styles.btnStandard} flex items-center gap-2`}
+                >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  <span className="text-sm">{loading ? "Gerando..." : "Gerar Imagem"}</span>
                 </button>
               </div> 
           </div>
@@ -106,8 +170,18 @@ function ImageGeneration() {
             <p className={styles.blockSubtitle}>Imagem Gerada</p>
             <p className={`${styles.statSubtext} text-sm`}>Sua imagem criada pela IA</p>
             <div className="flex flex-col flex-1 justify-center items-center text-center min-h-[35vh] space-y-2">
-              <Image className="w-16 h-16 text-gray-300" />  
-              <p className="text-gray-500">A imagem gerada aparecerá aqui</p>
+              {result ? (
+                <img
+                  src={result}
+                  alt="Imagem gerada"
+                  className="max-w-full max-h-[30vh] rounded-lg shadow-md"
+                />
+              ) : (
+                <>
+                  <ImageIcon className="w-16 h-16 text-gray-300" />
+                  <p className="text-gray-500">A imagem gerada aparecerá aqui</p>
+                </>
+              )}
             </div>
           </div>
         </div>

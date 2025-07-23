@@ -45,6 +45,24 @@ export default function GeneratedContentsList() {
   // Ordenação
   const [sortBy, setSortBy] = useState("newest");
 
+  const formatDateTime = (dateStr) => {
+    if (!dateStr) return "";
+
+    // Remove microssegundos (tudo depois do ponto)
+    const cleaned = dateStr.replace(/\.\d+$/, "");
+
+    // Adiciona Z para interpretar como UTC, caso não tenha
+    const fixed = cleaned.endsWith("Z") ? cleaned : cleaned + "Z";
+
+    return new Date(fixed).toLocaleString("pt-BR", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   // Fechar menus ao clicar fora
   useEffect(() => {
     function handleClickOutside(e) {
@@ -112,20 +130,20 @@ export default function GeneratedContentsList() {
 
     // 🔹 Filtrar por modelo/estilo/proporção
     if (filterModel) filtered = filtered.filter((c) => c.model_used === filterModel);
-    if (filterStyle) filtered = filtered.filter((c) => c.estilo === filterStyle);
-    if (filterRatio) filtered = filtered.filter((c) => c.proporcao === filterRatio);
+    if (filterStyle) filtered = filtered.filter((c) => c.style === filterStyle);
+    if (filterRatio) filtered = filtered.filter((c) => c.ratio === filterRatio);
 
-    // 🔹 Filtro de temperatura (textos)
+    // 🔹 Filtro de temperature (textos)
     if (filterTempMin)
-      filtered = filtered.filter((c) => !c.temperatura || c.temperatura >= parseFloat(filterTempMin));
+      filtered = filtered.filter((c) => !c.temperature || c.temperature >= parseFloat(filterTempMin));
     if (filterTempMax)
-      filtered = filtered.filter((c) => !c.temperatura || c.temperatura <= parseFloat(filterTempMax));
+      filtered = filtered.filter((c) => !c.temperature || c.temperature <= parseFloat(filterTempMax));
 
     // 🔹 Filtro de duração (vídeos)
     if (filterDurMin)
-      filtered = filtered.filter((c) => !c.duracao || c.duracao >= parseInt(filterDurMin));
+      filtered = filtered.filter((c) => !c.duration || c.duration >= parseInt(filterDurMin));
     if (filterDurMax)
-      filtered = filtered.filter((c) => !c.duracao || c.duracao <= parseInt(filterDurMax));
+      filtered = filtered.filter((c) => !c.duration || c.duration <= parseInt(filterDurMax));
 
     // 🔹 Filtro por data
     if (dateFilter) {
@@ -148,7 +166,7 @@ export default function GeneratedContentsList() {
     } else if (sortBy === "model") {
       filtered.sort((a, b) => (a.model_used || "").localeCompare(b.model_used || ""));
     } else if (sortBy === "duration" && activeTab === "video") {
-      filtered.sort((a, b) => (a.duracao || 0) - (b.duracao || 0));
+      filtered.sort((a, b) => (a.duration || 0) - (b.duration || 0));
     }
 
     return filtered;
@@ -498,7 +516,9 @@ export default function GeneratedContentsList() {
                 {content.content_type === "text" && <FileText className="w-4 h-4 text-blue-500" />}
                 {content.content_type === "image" && <Image className="w-4 h-4 text-green-500" />}
                 {content.content_type === "video" && <Video className="w-4 h-4 text-purple-500" />}
-                <span className="text-xs text-gray-600">{new Date(content.created_at).toLocaleDateString()}</span>
+                <span className="text-xs text-gray-600">
+                  {formatDateTime(content.created_at)}
+                </span>
               </div>
 
               {/* Conteúdo cresce e ocupa espaço */}
@@ -535,16 +555,16 @@ export default function GeneratedContentsList() {
               </p>
               {selectedContent.content_type === "text" && (
                 <p>
-                  <strong>Temperatura:</strong> {selectedContent.temperatura ?? "—"}
+                  <strong>Temperatura:</strong> {selectedContent.temperature ?? "—"}
                 </p>
               )}
               {selectedContent.content_type === "video" && (
                 <p>
-                  <strong>Duração:</strong> {selectedContent.duracao ? `${selectedContent.duracao}s` : "—"}
+                  <strong>Duração:</strong> {selectedContent.duration ? `${selectedContent.duration}s` : "—"}
                 </p>
               )}
               <p>
-                <strong>Data:</strong> {new Date(selectedContent.created_at).toLocaleString()}
+                <strong>Criado em:</strong> {formatDateTime(selectedContent.created_at)}
               </p>
             </div>
           </div>

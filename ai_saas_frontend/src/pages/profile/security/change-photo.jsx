@@ -6,7 +6,8 @@ import { Image as ImageIcon, User as UserIcon, Trash2, ArrowLeft } from "lucide-
 import styles from "../../profile/profile.module.css";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { userRoutes, profileRoutes } from "../../../services/apiRoutes";
+import { userRoutes, profileRoutes, notificationRoutes } from "../../../services/apiRoutes";
+import { useNotifications } from "../../../context/NotificationContext";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
@@ -17,6 +18,7 @@ export default function EditPhotoPanel() {
   const [photoFile, setPhotoFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const { fetchNotifications } = useNotifications();
 
   // Extrai nome do arquivo para URL da foto
   const perfilPhoto = user?.perfil_photo;
@@ -96,6 +98,17 @@ export default function EditPhotoPanel() {
 
       toast.success("Foto removida com sucesso!");
 
+      await fetch(notificationRoutes.create, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+            message: `Sua foto foi alterada!`,
+            link: "/profile"
+          }),
+          });
+      fetchNotifications();
+
       const updatedUser = await fetch(userRoutes.getCurrentUser(), { credentials: "include" }).then((res) => res.json());
 
       loginSuccess({ user: updatedUser });
@@ -112,7 +125,12 @@ export default function EditPhotoPanel() {
   return (
     <Layout>
       <div className={styles.returnLink}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
+                <button
+                  onClick={() => navigate(-1)}
+                  className="flex items-center text-gray-700 hover:text-black"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                </button>
                 <nav className="flex items-center text-sm space-x-1">
                   <Link to="/profile" className="text-gray-700 hover:text-black">
                     Perfil
