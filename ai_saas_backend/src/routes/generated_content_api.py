@@ -85,7 +85,16 @@ def create_generated_content():
 @jwt_required()
 def list_generated_contents():
     current_user_id = get_jwt_identity()
-    contents = GeneratedContent.query.filter_by(user_id=current_user_id).all()
+    query_param = request.args.get("q", "").strip().lower()
+
+    base_query = GeneratedContent.query.filter_by(user_id=current_user_id)
+
+    if query_param:
+        base_query = base_query.filter(
+            GeneratedContent.prompt.ilike(f"%{query_param}%")
+        )
+
+    contents = base_query.all()
     return jsonify([c.to_dict() for c in contents]), 200
 
 
@@ -119,3 +128,26 @@ def delete_generated_content(content_id):
     db.session.delete(content)
     db.session.commit()
     return jsonify({"message": "Conteúdo deletado com sucesso"}), 200
+
+@generated_content_api.route("/batch", methods=["DELETE"])
+@jwt_required()
+def delete_batch_contents():
+    current_user_id = get_jwt_identity()
+    ids = request.json.get("ids", [])
+
+    if not ids:
+        return jsonify({"error": "Nenhum ID enviado"}), 400
+
+    contents = GeneratedContent.query.filter(
+        GeneratedContent.id.in_(ids),
+        GeneratedContent.user_id == current_user_id
+    ).all()
+
+    if not contents:
+        return jsonify({"error": "Nenhum conteúdo válido encontrado"}), 404
+
+    for c in contents:
+        db.session.delete(c)
+
+    db.session.commit()
+    return jsonify({"message": f"{len(contents)} conteúdos deletados com sucesso"}), 200

@@ -1,0 +1,12 @@
+export function formatDateTime(dateStr) {
+  if (!dateStr) return "";
+  const cleaned = dateStr.replace(/\.\d+$/, "");
+  const fixed = cleaned.endsWith("Z") ? cleaned : cleaned + "Z";
+  return new Date(fixed).toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}

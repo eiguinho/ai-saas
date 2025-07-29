@@ -7,16 +7,14 @@ import { toast } from "react-toastify";
 import { projectRoutes } from "../../../services/apiRoutes";
 
 export default function EditProject() {
-  const { id } = useParams(); // pega o :id da rota
+  const { id } = useParams();
   const navigate = useNavigate();
-
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [project, setProject] = useState(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-  // Buscar detalhes do projeto
   const fetchProject = async () => {
     try {
       const res = await fetch(projectRoutes.get(id), {
@@ -36,7 +34,6 @@ export default function EditProject() {
     }
   };
 
-  // Salvar alterações
   const handleSave = async () => {
     if (!name.trim()) {
       toast.error("O nome do projeto é obrigatório.");
@@ -51,10 +48,8 @@ export default function EditProject() {
         credentials: "include",
         body: JSON.stringify({ name, description }),
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao salvar projeto");
-
       toast.success("Projeto atualizado com sucesso!");
       navigate("/workspace/projects");
     } catch (err) {
@@ -105,16 +100,10 @@ export default function EditProject() {
           <span className="text-gray-500">Editar</span>
         </nav>
       </div>
-
       <section className="flex flex-col items-center justify-center space-y-6">
         <h1 className={styles.title}>Editar Projeto</h1>
-
         <div className={styles.statCard}>
-          <p className={styles.statSubtext}>
-            Altere o nome ou a descrição do projeto.
-          </p>
-
-          {/* Nome */}
+          <p className={styles.statSubtext}>Altere o nome ou a descrição do projeto.</p>
           <div className="relative mt-4 mb-3">
             <FileText className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
@@ -126,8 +115,6 @@ export default function EditProject() {
               required
             />
           </div>
-
-          {/* Descrição */}
           <textarea
             placeholder="Descrição do projeto..."
             value={description}
@@ -135,7 +122,6 @@ export default function EditProject() {
             rows="4"
             className="w-full mt-2 pl-3 py-2 rounded-lg border border-gray-300 text-black text-sm shadow-sm focus:outline-none focus:shadow-md"
           />
-
           <div className="flex justify-end mt-4">
             <button
               onClick={handleSave}

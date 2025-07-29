@@ -9,7 +9,7 @@ import { useNotifications } from "../../../context/NotificationContext";
 function ImageGeneration() {
   const [prompt, setPrompt] = useState("");
   const [result, setResult] = useState("");
-  const [model, setModel] = useState("dalle");
+  const [model, setModel] = useState("dall-e-3");
   const [style, setStyle] = useState("realist");
   const [ratio, setRatio] = useState("square");
   const [loading, setLoading] = useState(false);
@@ -22,20 +22,13 @@ function ImageGeneration() {
       toast.warning("Digite um prompt antes de gerar!");
       return;
     }
-
     setLoading(true);
     setResult("");
-
     try {
       await simulateDelay(2000);
-      // Caminho simulado da imagem
       const simulatedImagePath = "/static/uploads/image.png";
-
-      // Montar a descrição usada (prompt + estilo + proporção)
       const simulatedDescription = `Imagem gerada para o prompt: "${prompt}"
-Modelo: ${model}, Estilo: ${style}, Proporção: ${ratio}`;
-
-      // Enviar para backend com file_path fixo
+  Modelo: ${model}, Estilo: ${style}, Proporção: ${ratio}`;
       const res = await fetch(generatedContentRoutes.create, {
         method: "POST",
         credentials: "include",
@@ -44,29 +37,27 @@ Modelo: ${model}, Estilo: ${style}, Proporção: ${ratio}`;
           content_type: "image",
           prompt,
           model_used: model,
-          temperature: null, // não faz sentido pra imagem
-          content_data: simulatedDescription, // descrição salva no banco
-          file_path: simulatedImagePath // caminho fixo para simulação
+          temperature: null,
+          content_data: simulatedDescription,
+          file_path: simulatedImagePath,
+          style,     
+          ratio     
         }),
       });
-
       if (!res.ok) throw new Error("Erro ao salvar imagem gerada");
       const data = await res.json();
-
-      // Mostra a URL salva (ou usa a simulada)
       setResult(data.content.file_path || simulatedImagePath);
       toast.success("Imagem gerada (simulada) e salva com sucesso!");
-
       await fetch(notificationRoutes.create, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-        message: `Imagem gerada com sucesso: "${
-          prompt.length > 40 ? prompt.slice(0, 40) + "..." : prompt
-        }"`,
-        link: "/workspace/generated-contents"
-      }),
+          message: `Imagem gerada com sucesso: "${
+            prompt.length > 40 ? prompt.slice(0, 40) + "..." : prompt
+          }"`,
+          link: "/workspace/generated-contents"
+        }),
       });
       fetchNotifications();
     } catch (err) {
@@ -76,16 +67,13 @@ Modelo: ${model}, Estilo: ${style}, Proporção: ${ratio}`;
     }
   }
 
-
   return (
     <Layout>
       <section className={`${styles.section} space-y-6`}>
-        {/* Título e Subtítulo */}
         <div>
           <h1 className={styles.title}>Geração de Imagem</h1>
           <p className="text-gray-600">Crie imagens incríveis usando IA generativa</p>
         </div>
-        {/* Grid principal */}
         <div className={styles.panelGrid}>
           <div className={styles.statCard}>
             <div className={styles.statHeader}>
@@ -100,10 +88,10 @@ Modelo: ${model}, Estilo: ${style}, Proporção: ${ratio}`;
                 onChange={(e) => setModel(e.target.value)}
                 className={styles.selectClean}
               >
-                <option value="dalle">DALL-E 3</option>
+                <option value="dall-e-3">DALL·E 3</option>
                 <option value="midjourney">Midjourney</option>
-                <option value="stable">Stable Diffusion</option>
-                <option value="adobe">Adobe Firefly</option>
+                <option value="stable-diffusion">Stable Diffusion</option>
+                <option value="adobe-firefly">Adobe Firefly</option>
               </select>
             </div>
             <div className="flex flex-col mb-2">
@@ -142,31 +130,28 @@ Modelo: ${model}, Estilo: ${style}, Proporção: ${ratio}`;
             <p className={`${styles.statSubtext} text-sm`}>Descreva a imagem que você gostaria de gerar</p>
             <div className="flex flex-col mt-6">
               <textarea
-                  placeholder="Ex: Um gato laranja sentado em uma janela olhando para a chuva, estilo fotorrealista, iluminação suave..."
-                  rows={5}
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  className="w-full pl-4 pr-4 py-2 rounded-lg border text-black border-gray-300 text-sm shadow-sm focus:outline-none focus:shadow-md"
+                placeholder="Ex: Um gato laranja sentado em uma janela olhando para a chuva, estilo fotorrealista, iluminação suave..."
+                rows={5}
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                className="w-full pl-4 pr-4 py-2 rounded-lg border text-black border-gray-300 text-sm shadow-sm focus:outline-none focus:shadow-md"
               ></textarea>
             </div>
-              <div className="flex justify-between items-center mt-6">
-                <p className={`${styles.statSubtext} text-sm`}>
-                  {prompt.length} caracteres
-                </p>
-                <button
-                  onClick={handleGenerate}
-                  disabled={loading}
-                  className={`${styles.btn} ${styles.btnStandard} flex items-center gap-2`}
-                >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                  <span className="text-sm">{loading ? "Gerando..." : "Gerar Imagem"}</span>
-                </button>
-              </div> 
+            <div className="flex justify-between items-center mt-6">
+              <p className={`${styles.statSubtext} text-sm`}>{prompt.length} caracteres</p>
+              <button
+                onClick={handleGenerate}
+                disabled={loading}
+                className={`${styles.btn} ${styles.btnStandard} flex items-center gap-2`}
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                <span className="text-sm">{loading ? "Gerando..." : "Gerar Imagem"}</span>
+              </button>
+            </div>
           </div>
         </div>
-        {/* Resultado */}
         <div className={styles.panelGrid}>
-        <div className={`${styles.statCard} flex flex-col flex-1 col-start-2`}>
+          <div className={`${styles.statCard} flex flex-col flex-1 col-start-2`}>
             <p className={styles.blockSubtitle}>Imagem Gerada</p>
             <p className={`${styles.statSubtext} text-sm`}>Sua imagem criada pela IA</p>
             <div className="flex flex-col flex-1 justify-center items-center text-center min-h-[35vh] space-y-2">

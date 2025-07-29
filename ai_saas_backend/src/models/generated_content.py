@@ -98,7 +98,7 @@ class GeneratedVideoContent(GeneratedContent):
     def to_dict(self):
         data = self.base_dict()
         data.update({
-            "eststyleilo": self.style,
+            "style": self.style,
             "ratio": self.ratio,
             "duration": self.duration
         })

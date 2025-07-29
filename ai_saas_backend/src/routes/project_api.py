@@ -32,13 +32,21 @@ def create_project():
 
     return jsonify({"message": "Projeto criado com sucesso", "project": project.to_dict()}), 201
 
-
-# Listar projetos do usuário logado
+# LISTAR PROJETOS DO USUÁRIO LOGADO
 @project_api.route("/", methods=["GET"])
 @jwt_required()
 def list_projects():
     current_user_id = get_jwt_identity()
-    projects = Project.query.filter_by(user_id=current_user_id).all()
+    query_param = request.args.get("q", "").strip().lower()
+
+    base_query = Project.query.filter_by(user_id=current_user_id)
+
+    if query_param:
+        base_query = base_query.filter(
+            Project.name.ilike(f"%{query_param}%")
+        )
+
+    projects = base_query.all()
     return jsonify([p.to_dict() for p in projects]), 200
 
 

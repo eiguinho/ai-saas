@@ -1,8 +1,8 @@
-import { Bell, User, Search, Settings, LogOut, CreditCard, HelpCircle } from "lucide-react"
+import { Bell, User, Search, Settings, LogOut, CreditCard, HelpCircle, Folder, FileText } from "lucide-react"
 import { useAuth } from "../../context/AuthContext"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { notificationRoutes } from "../../services/apiRoutes"
+import { projectRoutes, generatedContentRoutes, notificationRoutes } from "../../services/apiRoutes"
 import { useNotifications } from "../../context/NotificationContext"
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
@@ -12,12 +12,69 @@ export default function Header() {
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState([])
+  const [searchOpen, setSearchOpen] = useState(false)
   const { notifications, unreadCount, fetchNotifications, setNotifications, setUnreadCount } = useNotifications()
   const menuRef = useRef(null)
+  const searchRef = useRef(null)
 
   const perfilPhoto = user?.perfil_photo
   let perfilPhotoFilename = null
   if (perfilPhoto && typeof perfilPhoto === "string") perfilPhotoFilename = perfilPhoto.replace(/\\/g, "/").split("/").pop()
+
+  const debounce = (fn, delay) => {
+    let timeout
+    return (...args) => {
+      clearTimeout(timeout)
+      timeout = setTimeout(() => fn(...args), delay)
+    }
+  }
+
+  const truncate = (str, length = 50) => {
+    if (!str) return ""
+    return str.length > length ? str.substring(0, length) + "..." : str
+  }
+
+  const fetchSearchResults = useCallback(debounce(async (query) => {
+    if (!query.trim()) {
+      setSearchResults([])
+      return
+    }
+    try {
+      const [projRes, contRes] = await Promise.all([
+        fetch(`${projectRoutes.list}?q=${query}`, { credentials: "include" }).then(r => r.json()),
+        fetch(`${generatedContentRoutes.list}?q=${query}`, { credentials: "include" }).then(r => r.json())
+      ])
+      const formatted = [
+        ...(projRes || []).map(p => ({ type: "project", id: p.id, title: p.name || p.title, created_at: p.created_at })),
+        ...(contRes || []).map(c => ({ type: "content", id: c.id, title: truncate(c.prompt || "Conteúdo gerado"), created_at: c.created_at }))
+      ]
+      setSearchResults(formatted)
+      setSearchOpen(true)
+    } catch (err) {
+      console.error("Erro ao buscar:", err)
+    }
+  }, 400), [])
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value
+    setSearchQuery(value)
+    fetchSearchResults(value)
+  }
+
+  const handleSearchClick = (item) => {
+    setSearchQuery("")
+    setSearchResults([])
+    setSearchOpen(false)
+    if (item.type === "project") {
+      navigate(`/workspace/projects/${item.id}/modify-content`)
+    } else if (item.type === "content") {
+      navigate(`/workspace/generated-contents`)
+      // Futuro: abrir modal específico
+    }
+  }
+
 
   const markNotificationAsRead = async (notifId) => {
     try {
@@ -111,9 +168,22 @@ export default function Header() {
 
   return (
     <header className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white w-full relative z-50" ref={menuRef}>
-      <div className="relative max-w-md w-full">
+      <div className="relative max-w-md w-full" ref={searchRef}>
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-        <input type="text" placeholder="Buscar projetos, conteúdo..." className="w-xs pl-10 py-2 rounded-lg border text-black border-gray-300 text-sm shadow-sm focus:outline-none focus:shadow-md" />
+        <input value={searchQuery} onChange={handleSearchChange} type="text" placeholder="Buscar projetos, conteúdos..." className="w-xs pl-10 py-2 rounded-lg border text-black border-gray-300 text-sm shadow-sm focus:outline-none focus:shadow-md" />
+        {searchOpen && searchResults.length > 0 && (
+          <div className="absolute mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-50 animate-fadeIn origin-top">
+            <ul className="max-h-80 overflow-y-auto divide-y divide-gray-200">
+              {searchResults.map(item => (
+                <li key={`${item.type}-${item.id}`} onClick={() => handleSearchClick(item)} className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                  {item.type === "project" ? <Folder className="w-4 h-4 text-blue-500" /> : <FileText className="w-4 h-4 text-purple-500" />}
+                  <span className="flex-1 text-sm">{item.title}</span>
+                  <span className="text-xs text-gray-400">{new Date(item.created_at).toLocaleDateString("pt-BR")}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-4 relative">

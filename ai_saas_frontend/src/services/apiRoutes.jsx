@@ -48,6 +48,7 @@ export const generatedContentRoutes = {
   create: `${API_BASE}/contents/`,              // POST → criar conteúdo gerado
   get: (contentId) => `${API_BASE}/contents/${contentId}`,   // GET → detalhes conteúdo
   delete: (contentId) => `${API_BASE}/contents/${contentId}`, // DELETE → deletar conteúdo
+  deleteBatch: `${API_BASE}/contents/batch`, // NOVA ROTA
 };
 
 export const notificationRoutes = {

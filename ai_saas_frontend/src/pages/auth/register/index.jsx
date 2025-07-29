@@ -26,7 +26,6 @@ function Register() {
   const location = useLocation();
   const emailFromState = location.state?.email;
 
-  // Preenche o e-mail no form só uma vez
   useEffect(() => {
     if (emailFromState) {
       setForm((prev) => ({ ...prev, email: emailFromState }));
@@ -86,12 +85,10 @@ function Register() {
       body: formData,
     });
 
-    // Tenta fazer parse como JSON, mas sem ler o body duas vezes
     let data = null;
     try {
       data = await res.clone().json();
     } catch {
-      // Se falhar, é porque não é JSON (HTML ou texto)
     }
 
     if (!res.ok) {
@@ -117,7 +114,6 @@ function Register() {
         </Link>
         <h1 className={styles.title}>Cadastro</h1>
         <form onSubmit={handleSubmit}>
-          {/* Nome completo */}
           <div className="w-full my-4">
             <div className="relative">
               <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -133,7 +129,6 @@ function Register() {
             </div>
           </div>
 
-          {/* Username */}
           <div className="w-full my-4">
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -149,7 +144,6 @@ function Register() {
             </div>
           </div>
 
-          {/* Email */}
           <div className="w-full my-4">
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -165,7 +159,6 @@ function Register() {
             {emailError && <p className="text-sm text-red-500 mt-1">{emailError}</p>}
           </div>
 
-          {/* Senha */}
           <div className="w-full my-4">
             <div className="relative">
               <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -184,7 +177,6 @@ function Register() {
             {passwordError && <p className="text-sm text-red-500 mt-1">{passwordError}</p>}
           </div>
 
-          {/* Confirmar senha */}
           <div className="w-full my-4">
             <div className="relative">
               <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -205,7 +197,6 @@ function Register() {
               )}
           </div>
 
-           {/* Upload de foto */}
           <div className="w-full my-4">
             <label className="flex items-center space-x-2 text-sm text-gray-700">
               <ImageIcon className="w-4 h-4" />
