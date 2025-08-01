@@ -12,6 +12,7 @@ import VerifyCode from "./pages/auth/verify-code";
 import TextGeneration from "./pages/generation/text-generation";
 import ImageGeneration from "./pages/generation/image-generation";
 import VideoGeneration from "./pages/generation/video-generation";
+import Settings from "./pages/settings";
 import Profile from "./pages/profile";
 import Security from "./pages/profile/security";
 import EditName from "./pages/profile/security/change-name";
@@ -103,6 +104,14 @@ function MainRoutes(){
         element={
           <PrivateRoute>
             <Profile />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <PrivateRoute>
+            <Settings />
           </PrivateRoute>
         }
       />

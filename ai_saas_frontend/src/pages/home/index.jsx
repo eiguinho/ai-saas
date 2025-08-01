@@ -146,21 +146,24 @@ export default function Home() {
             className={`${styles.blockCard} divide-y divide-gray-300 cursor-pointer`}
             onClick={() => navigate("/workspace/projects")}
           >
-            {projects.slice(0, 3).map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center justify-between p-4 hover:bg-gray-50"
-              >
-                <div>
-                  <p className="font-semibold text-black mb-1">{item.name}</p>
+            {[...projects]
+              .reverse()
+              .slice(0, 3)
+              .map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between p-4 hover:bg-gray-50"
+                >
+                  <div>
+                    <p className="font-semibold text-black mb-1">{item.name}</p>
+                    <p className={`${styles.statSubtext} text-sm`}>
+                      {item.description || "Sem descrição"}
+                    </p>
+                  </div>
                   <p className={`${styles.statSubtext} text-sm`}>
-                    {item.description || "Sem descrição"}
+                    {new Date(item.created_at).toLocaleDateString("pt-BR")}
                   </p>
                 </div>
-                <p className={`${styles.statSubtext} text-sm`}>
-                  {new Date(item.created_at).toLocaleDateString("pt-BR")}
-                </p>
-              </div>
             ))}
 
             {projects.length === 0 && (
