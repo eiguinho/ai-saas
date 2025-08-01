@@ -27,7 +27,7 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-primary px-4 top-0 left-0 h-screen flex flex-col justify-between">
       <div>
-        <h2 className="text-xl text-left font-bold px-2 py-6">AI SaaS Platform</h2>
+        <img src="/static/artificiall/white_Hor_RGB.png" alt="Logo" className="w-64 h-autow px-2 py-6" />
         <nav className="space-y-2">
           {navItems.map(({ label, icon: Icon, path }) => {
             const isActive = location.pathname === path;

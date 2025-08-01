@@ -3,7 +3,7 @@
 @import "../../../styles/base.css";
 
 .btn {
-  background-color: var(--color-success);
+  background-color: var(--color-theme);
   color: white;
   border: none;
   cursor: pointer;
@@ -15,7 +15,7 @@
 }
 
 .btn:hover {
-  background-color: #0c865e;
+  background-color: var(--color-theme-dark);
 }
 
 .btn:focus,
@@ -32,7 +32,7 @@
 }
 
 .pageBackground {
-  background-color: var(--color-success);
+  background-color: #3A74B8;
   @apply min-h-screen flex items-center justify-center;
 }
 
@@ -43,7 +43,7 @@
 }
 
 .linkSuccess:hover {
-  color: #0c865e; /* cor para hover */
+  color: var(--color-theme); /* cor para hover */
 }
 
 /* Variante "wide", tipo um botão */

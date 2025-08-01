@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import styles from "./login.module.css";
-import { User, LockKeyhole  } from "lucide-react";
-import { Link } from "react-router-dom";
+import { User, LockKeyhole } from "lucide-react";
 import { toast } from "react-toastify";
 import { authRoutes } from "../../../services/apiRoutes";
 
@@ -14,13 +13,12 @@ function Login() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); // controle do loading no botão
+  const [loading, setLoading] = useState(false);
 
   async function handleLogin(e) {
     e.preventDefault();
     setError("");
-    setLoading(true); // começa a requisição
-
+    setLoading(true);
     try {
       const res = await fetch(authRoutes.login, {
         method: "POST",
@@ -30,77 +28,79 @@ function Login() {
       });
       if (res.status === 429) {
         throw new Error("Você excedeu o limite de tentativas. Tente novamente em alguns minutos.");
-    }
+      }
       let data = {};
-        try {
+      try {
         data = await res.json();
-        } catch {
-        
-        }
+      } catch {}
 
-    if (!res.ok) {
-      throw new Error(data?.error || "Erro ao fazer login");
-    }
+      if (!res.ok) throw new Error(data?.error || "Erro ao fazer login");
+
       loginSuccess(data);
       toast.success("Usuário logado com sucesso!");
       navigate("/");
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false); // fim da requisição
+      setLoading(false);
     }
   }
 
   return (
     <main className={styles.pageBackground}>
-      <section className={styles.statCard}>
-        <h1 className={styles.title}>Login</h1>
-        <form onSubmit={handleLogin}>
-            <div className="relative max-w-md w-full my-4">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
+      <section className={styles.loginCard}>
+        <div className={styles.loginLeft}>
+          <img src="/static/artificiall/Artificiall_Negativo_Vert_RGB.png" alt="Logo" className="w-64 h-auto" />
+        </div>
+        <div className={styles.loginRight}>
+          <h1 className={styles.title}>Login</h1>
+          <form onSubmit={handleLogin} className="w-full max-w-sm">
+            <div className="relative w-full my-4">
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
                 type="text"
                 placeholder="Usuário ou Email"
-                className="w-xs pl-10 py-2 rounded-lg border text-black border-gray-300 text-sm shadow-sm focus:outline-none focus:shadow-md"
+                className="w-full pl-10 py-2 rounded-lg border text-black border-gray-300 text-sm shadow-sm focus:outline-none focus:shadow-md"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 required
                 disabled={loading}
-                />
+              />
             </div>
-            <div className="relative max-w-md w-full my-4">
-                <LockKeyhole className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
+            <div className="relative w-full my-4">
+              <LockKeyhole className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
                 type="password"
                 placeholder="Senha"
-                className="w-xs pl-10 py-2 rounded-lg border text-black border-gray-300 text-sm shadow-sm focus:outline-none focus:shadow-md"
+                className="w-full pl-10 py-2 rounded-lg border text-black border-gray-300 text-sm shadow-sm focus:outline-none focus:shadow-md"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={loading}
-                />
+              />
             </div>
-          {error && <p className={styles.error}>{error}</p>}
-          <button
-            type="submit"
-            className={`${styles.btn} ${styles.btnWide}`}
-            disabled={loading}
+            {error && <p className={styles.error}>{error}</p>}
+            <button
+              type="submit"
+              className={`${styles.btn} ${styles.btnWide}`}
+              disabled={loading}
             >
-            {loading ? "Entrando..." : "Entrar"}
+              {loading ? "Entrando..." : "Entrar"}
             </button>
-        </form>
-        <p className={styles.statSubtext}>
+          </form>
+          <p className={styles.statSubtext}>
             Não tem conta?
             <Link to="/verify-email" className={`${styles.linkSuccess} ${styles.linkSuccessWide}`}>
-                Cadastrar
+              Cadastrar
             </Link>
-        </p>
+          </p>
           <p className={styles.statSubtext}>
             Esqueceu a Senha?
             <Link to="/login/forgot-password" className={`${styles.linkSuccess} ${styles.linkSuccessWide}`}>
-                Recuperar
+              Recuperar
             </Link>
           </p>
+        </div>
       </section>
     </main>
   );

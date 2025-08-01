@@ -13,7 +13,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <AuthProvider>
         <NotificationProvider>
           <App />
-          <ToastContainer theme="colored" />
+          <ToastContainer theme="light" />
         </NotificationProvider>
       </AuthProvider>
     </BrowserRouter>

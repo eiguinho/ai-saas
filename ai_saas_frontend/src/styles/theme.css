@@ -1,7 +1,10 @@
 @theme {
   /* Cores Primárias */
   --color-primary: #185cfc;
-  --color-primary-dark: #1E40AF;
+  --color-theme: #54B8F0;
+  --color-theme-bg: #3A74B8;
+  --color-theme-dark: #1C2C8C;
+  --color-theme-gradient: linear-gradient(90deg, #54B8F0 0%, #1C2C8C 100%);
   --color-accent-purple: #7C3AED;
 
   /* Cores Secundárias */
