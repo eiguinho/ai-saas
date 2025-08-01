@@ -11,7 +11,7 @@ function TextGeneration() {
   const [result, setResult] = useState("");
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(1000);
-  const [model, setModel] = useState("gpt-4");
+  const [model, setModel] = useState("gpt-4o");
   const [loading, setLoading] = useState(false);
   const { fetchNotifications } = useNotifications();
 
@@ -90,7 +90,7 @@ Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac tu
                 onChange={(e) => setModel(e.target.value)}
                 className={styles.selectClean}
               >
-                <option value="gpt-4">GPT-4</option>
+                <option value="gpt-4o">GPT-4o</option>
                 <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
                 <option value="gemini-pro">Google Gemini Pro</option>
                 <option value="claude-3">Claude 3</option>

@@ -1,15 +1,10 @@
 import React, { useRef, useEffect } from "react";
 import { ArrowUpDown } from "lucide-react";
 
-export default function SortMenu({
-  activeTab,
-  sortBy,
-  setSortBy,
-}) {
+export default function SortMenu({ activeTab, sortBy, setSortBy }) {
   const sortRef = useRef(null);
   const [sortMenuOpen, setSortMenuOpen] = React.useState(false);
 
-  // Fecha o menu ao clicar fora
   useEffect(() => {
     function handleClickOutside(event) {
       if (sortRef.current && !sortRef.current.contains(event.target)) {
@@ -51,23 +46,38 @@ export default function SortMenu({
           </button>
           <button
             onClick={() => {
-              setSortBy("model");
+              setSortBy("name");
               setSortMenuOpen(false);
             }}
             className="w-full text-left px-4 py-2 hover:bg-gray-100"
           >
-            Por modelo
+            Por nome
           </button>
-          {activeTab === "video" && (
-            <button
-              onClick={() => {
-                setSortBy("duration");
-                setSortMenuOpen(false);
-              }}
-              className="w-full text-left px-4 py-2 hover:bg-gray-100"
-            >
-              Por duração
-            </button>
+
+          {/* Só mostra esses dois abaixo para tabs que não sejam "project" */}
+          {activeTab !== "project" && (
+            <>
+              <button
+                onClick={() => {
+                  setSortBy("model");
+                  setSortMenuOpen(false);
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-gray-100"
+              >
+                Por modelo
+              </button>
+              {activeTab === "video" && (
+                <button
+                  onClick={() => {
+                    setSortBy("duration");
+                    setSortMenuOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                >
+                  Por duração
+                </button>
+              )}
+            </>
           )}
         </div>
       )}
