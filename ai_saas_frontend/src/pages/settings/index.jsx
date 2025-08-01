@@ -84,128 +84,142 @@ export default function Settings() {
 
   return (
     <Layout>
-      <section className="space-y-6">
+      <section className="space-y-8">
         <h1 className={styles.title}>Configurações</h1>
         <div className={styles.panelGrid}>
-          <div className={`${styles.statCard} cursor-pointer`} onClick={() => setShowPlanModal(true)}>
-            <div className={styles.statHeader}>
-              <p className={styles.blockTitle}>Plano</p>
-              <UserCog className="w-4 h-4 text-gray-medium" />
-            </div>
-            <p className={`${styles.statSubtext} text-sm`}>Gerencie seu plano</p>
-          </div>
-          <div className={`${styles.statCard} cursor-pointer`} onClick={() => setShowAccountModal(true)}>
-            <div className={styles.statHeader}>
-              <p className={styles.blockTitle}>Conta</p>
-              <UserCircle2 className="w-4 h-4 text-gray-medium" />
-            </div>
-            <p className={`${styles.statSubtext} text-sm`}>Dados e opções da conta</p>
-          </div>
           <div
-            className={`${styles.statCard} cursor-pointer`}
+            className={`${styles.modernCard} ${styles.modernCardPlan}`}
+            onClick={() => setShowPlanModal(true)}
+            role="button"
+            tabIndex={0}
+            onKeyPress={(e) => e.key === "Enter" && setShowPlanModal(true)}
+          >
+            <UserCog size={28} className={styles.iconPlan} />
+            <h2 className={styles.cardTitle}>Plano</h2>
+            <p className={styles.cardDescription}>Gerencie seu plano e pagamentos.</p>
+          </div>
+
+          <div
+            className={`${styles.modernCard} ${styles.modernCardAccount}`}
+            onClick={() => setShowAccountModal(true)}
+            role="button"
+            tabIndex={0}
+            onKeyPress={(e) => e.key === "Enter" && setShowAccountModal(true)}
+          >
+            <UserCircle2 size={28} className={styles.iconAccount} />
+            <h2 className={styles.cardTitle}>Conta</h2>
+            <p className={styles.cardDescription}>Dados e opções da sua conta.</p>
+          </div>
+
+          <div
+            className={styles.modernCardDanger}
             onClick={() => {
               setShowDeleteVerifyModal(true);
               requestSecurityCode();
             }}
+            role="button"
+            tabIndex={0}
+            onKeyPress={(e) =>
+              e.key === "Enter" && (setShowDeleteVerifyModal(true), requestSecurityCode())
+            }
           >
-            <div className={styles.statHeader}>
-              <p className={styles.blockTitle}>Deletar Conta</p>
-              <Trash2 className="w-4 h-4 text-gray-medium" />
-            </div>
-            <p className={`${styles.statSubtext} text-sm`}>Encerrar conta permanentemente</p>
+            <Trash2 size={28} className={styles.iconDanger} />
+            <h2 className={styles.cardTitle}>Deletar Conta</h2>
+            <p className={styles.cardDescription}>Encerrar conta permanentemente.</p>
           </div>
         </div>
+
+        {/* Modais */}
+        <SettingsModal
+          isOpen={showPlanModal}
+          onClose={() => setShowPlanModal(false)}
+          title="Gerenciar Plano"
+          description="Aqui você poderá gerenciar seu plano e pagamentos."
+        >
+          {user ? (
+            <>
+              <p className="text-gray-700 text-sm">
+                <strong className="font-semibold text-gray-900 text-sm">Plano atual:</strong> {user.plan || "Não informado"}
+              </p>
+              <p className="text-gray-700 text-sm mt-2">
+                <strong className="font-semibold text-gray-900 text-sm">Tokens usados:</strong> {user.tokens_used ?? 0}
+              </p>
+              <div className="flex mt-8">
+                <Link
+                  to="/subscription"
+                  className="flex items-center gap-1 px-4 py-2 text-sm rounded-md bg-black text-white hover:opacity-90 transition ml-auto"
+                >
+                  Detalhes do Plano <FileText className="w-4 h-4" />
+                </Link>
+              </div>
+            </>
+          ) : (
+            <p>Carregando...</p>
+          )}
+        </SettingsModal>
+
+        <SettingsModal
+          isOpen={showAccountModal}
+          onClose={() => setShowAccountModal(false)}
+          title="Minha Conta"
+          description="Confira seus dados e estatísticas"
+        >
+          {user ? (
+            <>
+              <p className="text-gray-700 text-sm">
+                <strong className="font-semibold text-gray-900 text-sm">Nome:</strong> {user.full_name || "N/A"}
+              </p>
+              <p className="text-gray-700 text-sm">
+                <strong className="font-semibold text-gray-900 text-sm">E-mail:</strong> {user.email || "N/A"}
+              </p>
+              <p className="text-gray-700 text-sm">
+                <strong className="font-semibold text-gray-900 text-sm">Conteúdos gerados:</strong> {contents.length}
+              </p>
+              <p className="text-gray-700 text-sm">
+                <strong className="font-semibold text-gray-900 text-sm">Projetos gerados:</strong> {projects.length}
+              </p>
+              <p className="text-gray-700 text-sm">
+                <strong className="font-semibold text-gray-900 text-sm">Conta criada em:</strong>{" "}
+                {new Date(user.created_at).toLocaleDateString("pt-BR")}
+              </p>
+            </>
+          ) : (
+            <p>Carregando...</p>
+          )}
+        </SettingsModal>
+
+        <SecurityModal
+          isOpen={showDeleteVerifyModal}
+          onClose={() => setShowDeleteVerifyModal(false)}
+          onVerify={verifySecurityCode}
+          onRequestCode={requestSecurityCode}
+          loading={loading}
+          errorMessage={errorMessage}
+        />
+
+        <SettingsModal
+          isOpen={showDeleteConfirmModal}
+          onClose={() => setShowDeleteConfirmModal(false)}
+          title="Confirmar exclusão"
+          description="Tem certeza que deseja deletar sua conta? Esta ação é permanente e não poderá ser desfeita."
+        >
+          <div className="flex justify-end gap-2 mt-6">
+            <button
+              onClick={() => setShowDeleteConfirmModal(false)}
+              className="py-2 px-4 rounded border border-gray-300 hover:bg-gray-100"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleDeleteAccount}
+              disabled={loading}
+              className="py-2 px-4 rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+            >
+              {loading ? "Deletando..." : "Deletar Conta"}
+            </button>
+          </div>
+        </SettingsModal>
       </section>
-
-      <SettingsModal
-        isOpen={showPlanModal}
-        onClose={() => setShowPlanModal(false)}
-        title="Gerenciar Plano"
-        description="Aqui você poderá gerenciar seu plano e pagamentos."
-      >
-        {user ? (
-          <>
-            <p className="text-gray-700 text-sm">
-              <strong className="font-semibold text-gray-900 text-sm">Plano atual:</strong> {user.plan || "Não informado"}
-            </p>
-            <p className="text-gray-700 text-sm mt-2">
-              <strong className="font-semibold text-gray-900 text-sm">Tokens usados:</strong> {user.tokens_used ?? 0}
-            </p>
-            <div className="flex mt-8">
-              <Link
-                to="/subscription"
-                className="flex items-center gap-1 px-4 py-2 text-sm rounded-md bg-black text-white hover:opacity-90 transition ml-auto"
-              >
-                Detalhes do Plano <FileText className="w-4 h-4" />
-              </Link>
-            </div>
-          </>
-        ) : (
-          <p>Carregando...</p>
-        )}
-      </SettingsModal>
-
-      <SettingsModal
-        isOpen={showAccountModal}
-        onClose={() => setShowAccountModal(false)}
-        title="Minha Conta"
-        description="Confira seus dados e estatísticas"
-      >
-        {user ? (
-          <>
-            <p className="text-gray-700 text-sm">
-              <strong className="font-semibold text-gray-900 text-sm">Nome:</strong> {user.full_name || "N/A"}
-            </p>
-            <p className="text-gray-700 text-sm">
-              <strong className="font-semibold text-gray-900 text-sm">E-mail:</strong> {user.email || "N/A"}
-            </p>
-            <p className="text-gray-700 text-sm">
-              <strong className="font-semibold text-gray-900 text-sm">Conteúdos gerados:</strong> {contents.length}
-            </p>
-            <p className="text-gray-700 text-sm">
-              <strong className="font-semibold text-gray-900 text-sm">Projetos gerados:</strong> {projects.length}
-            </p>
-            <p className="text-gray-700 text-sm">
-              <strong className="font-semibold text-gray-900 text-sm">Conta criada em:</strong>{" "}
-              {new Date(user.created_at).toLocaleDateString("pt-BR")}
-            </p>
-          </>
-        ) : (
-          <p>Carregando...</p>
-        )}
-      </SettingsModal>
-
-      <SecurityModal
-        isOpen={showDeleteVerifyModal}
-        onClose={() => setShowDeleteVerifyModal(false)}
-        onVerify={verifySecurityCode}
-        onRequestCode={requestSecurityCode}
-        loading={loading}
-        errorMessage={errorMessage}
-      />
-
-      <SettingsModal
-        isOpen={showDeleteConfirmModal}
-        onClose={() => setShowDeleteConfirmModal(false)}
-        title="Confirmar exclusão"
-        description="Tem certeza que deseja deletar sua conta? Esta ação é permanente e não poderá ser desfeita."
-      >
-        <div className="flex justify-end gap-2 mt-6">
-          <button
-            onClick={() => setShowDeleteConfirmModal(false)}
-            className="py-2 px-4 rounded border border-gray-300 hover:bg-gray-100"
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={handleDeleteAccount}
-            disabled={loading}
-            className="py-2 px-4 rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
-          >
-            {loading ? "Deletando..." : "Deletar Conta"}
-          </button>
-        </div>
-      </SettingsModal>
     </Layout>
   );
 }

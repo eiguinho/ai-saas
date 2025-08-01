@@ -2,66 +2,100 @@
 @import "../../styles/theme.css";
 @import "../../styles/base.css";
 
-.btnBlack {
-  background-color: #1a1a1a;
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-weight: 500;
-  border-radius: 8px;
-  transition: background-color 0.25s ease;
-  outline: none;
-}
-
-.btnBlack:hover {
-  @apply bg-neutral-800;
-}
-
-.btnBlack:focus,
-.btnBlack:focusVisible {
-  outline: none;
-}
-
-.btnBlackStandard {
-  @apply px-3 py-2 inline-flex items-center gap-4;
-}
-
-.btnBlackWide {
-  @apply block w-full max-w-full px-4 py-2 mt-4 text-center text-sm;
-}
-
 .title {
-  @apply text-3xl font-bold text-gray-900;
-}
-
-.subTitle {
-  @apply text-xl font-semibold text-gray-900 mb-1;
-}
-
-.blockTitle {
-  @apply text-sm text-black font-medium;
+  @apply text-3xl font-bold text-gray-900 mb-8;
 }
 
 .panelGrid {
-  @apply grid grid-cols-1 md:grid-cols-3 gap-5;
+  @apply grid grid-cols-1 md:grid-cols-3 gap-8;
 }
 
-.statCard {
-  @apply bg-white p-6 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:shadow-md;
+/* Cards base */
+.modernCard {
+  @apply bg-white rounded-xl border border-gray-200 shadow-lg p-8 cursor-pointer flex flex-col items-center text-center transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black;
 }
 
-.blockCard {
-  @apply bg-white py-6 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:shadow-md;
+/* Cores dos ícones e bordas */
+.modernCardSecurity {
+  border-color: #2563eb; /* azul-600 */
+  @apply hover:shadow-[0_8px_15px_-5px_rgba(37,99,235,0.5)];
 }
 
-.statHeader {
-  @apply flex justify-between items-center mb-6;
+.modernCardSubscription {
+  border-color: #059669; /* verde-600 */
+  @apply hover:shadow-[0_8px_15px_-5px_rgba(5,150,105,0.5)];
 }
 
-.statSubtext {
-  @apply text-gray-medium;
+.modernCardProjects {
+  border-color: #7c3aed; /* roxo-600 */
+  @apply hover:shadow-[0_8px_15px_-5px_rgba(124,58,237,0.5)];
+}
+
+.modernCardSupport {
+  border-color: #d97706; /* amarelo-600 */
+  @apply hover:shadow-[0_8px_15px_-5px_rgba(217,119,6,0.5)];
+}
+
+.iconWrapper {
+  @apply mb-5;
+}
+
+.iconSecurity {
+  color: #2563eb; /* azul-600 */
+}
+
+.iconSubscription {
+  color: #059669; /* verde-600 */
+}
+
+.iconProjects {
+  color: #7c3aed; /* roxo-600 */
+}
+
+.iconSupport {
+  color: #d97706; /* amarelo-600 */
+}
+
+.cardTitle {
+  @apply text-lg font-semibold mb-2;
 }
 
 .returnLink {
   @apply flex items-center text-sm text-gray-700 px-2 py-1 rounded-md hover:bg-gray-200 hover:text-black transition w-fit mb-4;
+}
+
+.inputWrapper {
+  @apply relative w-full;
+}
+
+.inputIcon {
+  @apply absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4;
+}
+
+.inputField {
+  @apply w-full pl-10 py-2 rounded-lg border border-gray-300 text-black text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-black;
+}
+
+.statCard {
+  @apply w-full bg-white rounded-xl border border-gray-200 shadow-md p-6 space-y-4;
+}
+
+.statSubtext {
+  @apply text-sm text-gray-600;
+}
+
+.blockTitle {
+  @apply text-sm font-medium text-gray-800;
+}
+
+.actionButton {
+  @apply py-2 px-4 rounded-md text-sm font-medium transition;
+}
+
+.primaryButton {
+  @apply bg-black text-white hover:opacity-90;
+}
+
+.successButton {
+  @apply bg-green-600 text-white hover:opacity-90;
 }

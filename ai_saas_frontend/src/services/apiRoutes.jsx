@@ -58,3 +58,7 @@ export const notificationRoutes = {
   markSingle: (id) => `${API_BASE}/notifications/${id}/mark-read`, // marca só 1
   delete: (id) => `${API_BASE}/notifications/${id}` // delete uma
 };
+
+export const plansRoutes = {
+  list: `${API_BASE}/plans`,   // GET → lista todos os planos
+};

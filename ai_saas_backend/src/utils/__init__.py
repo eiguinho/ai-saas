@@ -1,8 +1,9 @@
 from .decorators import admin_required
-from .utils import add_token_to_blacklist, check_if_token_revoked
+from .utils import add_token_to_blacklist, check_if_token_revoked, create_default_plans
 
 __all__ = [
     "admin_required",
     "add_token_to_blacklist",
-    "check_if_token_revoked"
+    "check_if_token_revoked",
+    "create_default_plans"
 ]

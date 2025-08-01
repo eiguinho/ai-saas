@@ -18,8 +18,8 @@ def list_all_users():
             "username": user.username,
             "email": user.email,
             "role": user.role,
-            "plan": user.plan,
-            "tokens_available": user.tokens_available,
+            "plan": user.plan.name if user.plan else None,
+            "tokens_available": user.plan.tokens_available if user.plan else 0,
             "is_active": user.is_active
         })
     return jsonify(result)

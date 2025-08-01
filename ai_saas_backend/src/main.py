@@ -4,8 +4,9 @@ from flask_limiter.errors import RateLimitExceeded
 from flask_jwt_extended.exceptions import RevokedTokenError
 from dotenv import load_dotenv
 from extensions import bcrypt, jwt, db, limiter, jwt_required, get_jwt_identity, create_access_token
-from utils import check_if_token_revoked
-from routes import user_api, admin_api, auth_api, email_api, profile_api, project_api, generated_content_api, notification_api
+from utils import check_if_token_revoked, create_default_plans
+from routes import user_api, admin_api, auth_api, email_api, profile_api, project_api, generated_content_api, notification_api, plan_api
+from models import User, Plan
 import os
 
 load_dotenv()
@@ -48,6 +49,7 @@ limiter.init_app(app)
 
 with app.app_context():
     db.create_all()
+    create_default_plans()
 
 # Configura blacklist com JWTManager
 @jwt.token_in_blocklist_loader
@@ -77,6 +79,7 @@ app.register_blueprint(auth_api, url_prefix="/api/auth")
 app.register_blueprint(email_api, url_prefix="/api/email")
 app.register_blueprint(profile_api, url_prefix="/api/users")
 app.register_blueprint(project_api, url_prefix="/api/projects")
+app.register_blueprint(plan_api, url_prefix="/api/plan")
 app.register_blueprint(generated_content_api, url_prefix="/api/contents")
 app.register_blueprint(notification_api, url_prefix="/api/notifications")
 

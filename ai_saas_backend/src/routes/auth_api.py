@@ -4,7 +4,7 @@ from extensions import (
     jwt_required, create_access_token, get_jwt, get_jwt_identity
 )
 from utils import add_token_to_blacklist
-from models import User
+from models import User, Plan
 from dotenv import load_dotenv
 import uuid, re, os, secrets
 from datetime import timedelta
@@ -51,7 +51,6 @@ def create_user():
         perfil_path = filepath
 
     email = data["email"]
-
     email_verified = redis_client.get(f"email_verified:{email}")
     if email_verified is None:
         return jsonify({"error": "Email ainda não verificado"}), 400
@@ -64,14 +63,20 @@ def create_user():
 
     hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
 
+    # Buscar plano Free
+    free_plan = Plan.query.filter_by(name="Premium").first()
+    if not free_plan:
+        return jsonify({"error": "Plano Free não encontrado"}), 500
+
     new_user = User(
         id=str(uuid.uuid4()),
         full_name=data["full_name"],
         username=data["username"],
-        email=email,
+        email=data["email"],
         password=hashed_password,
         perfil_photo=perfil_path,
         payment_method=data.get("payment_method"),
+        plan=free_plan  # Associa o plano Free automaticamente
     )
 
     db.session.add(new_user)
@@ -111,8 +116,8 @@ def login():
                 "username": user.username,
                 "email": user.email,
                 "role": user.role,
-                "plan": user.plan,
-                "tokens_available": user.tokens_available,
+                "plan": user.plan.name if user.plan else None,
+                "tokens_available": user.plan.tokens_available if user.plan else 0,
                 "payment_method": user.payment_method,
                 "perfil_photo": user.perfil_photo,
                 "is_active": user.is_active,

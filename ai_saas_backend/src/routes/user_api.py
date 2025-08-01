@@ -55,7 +55,7 @@ def update_user(user_id):
         return jsonify({"error": "JSON vazio"}), 400
 
     if current_user.role != "admin":
-        for campo_restrito in ["role", "plan", "tokens_available", "is_active"]:
+        for campo_restrito in ["role", "plan_id", "is_active"]:
             data.pop(campo_restrito, None)
 
     if "full_name" in data:
@@ -124,8 +124,8 @@ def get_current_user():
         "username": user.username,
         "email": user.email,
         "role": user.role,
-        "plan": user.plan,
-        "tokens_available": user.tokens_available,
+        "plan": user.plan.name if user.plan else None,
+        "tokens_available": user.plan.tokens_available if user.plan else 0,
         "payment_method": user.payment_method,
         "perfil_photo": user.perfil_photo,
         "is_active": user.is_active,

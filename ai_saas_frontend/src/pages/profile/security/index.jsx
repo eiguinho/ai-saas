@@ -25,51 +25,69 @@ export default function Security() {
           </nav>
         </div>
       <section className="space-y-6">
-        <h1 className={styles.title}>Segurança</h1>
-        <div className={styles.panelGrid}>
-
-          <div className={styles.statCard + " cursor-pointer"} onClick={() => navigate("/profile/security/name")}>
-            <div className={styles.statHeader}>
-              <p className={styles.blockTitle}>Nome completo</p>
-              <UserCircle2 className="w-4 h-4 text-gray-medium" />
-            </div>
-            <p className={styles.statSubtext}>Editar nome de exibição</p>
-          </div>
-
-          <div className={styles.statCard + " cursor-pointer"} onClick={() => navigate("/profile/security/username")}>
-            <div className={styles.statHeader}>
-              <p className={styles.blockTitle}>Usuário</p>
-              <User className="w-4 h-4 text-gray-medium" />
-            </div>
-            <p className={styles.statSubtext}>Editar nome de usuário</p>
-          </div>
-
-          <div className={styles.statCard + " cursor-pointer"} onClick={() => navigate("/profile/security/email")}>
-            <div className={styles.statHeader}>
-              <p className={styles.blockTitle}>Email</p>
-              <Mail className="w-4 h-4 text-gray-medium" />
-            </div>
-            <p className={styles.statSubtext}>Alterar endereço de email</p>
-          </div>
-
-          <div className={styles.statCard + " cursor-pointer"} onClick={() => navigate("/profile/security/password")}>
-            <div className={styles.statHeader}>
-              <p className={styles.blockTitle}>Senha</p>
-              <Lock className="w-4 h-4 text-gray-medium" />
-            </div>
-            <p className={styles.statSubtext}>Atualizar senha de acesso</p>
-          </div>
-
-          <div className={styles.statCard + " cursor-pointer"} onClick={() => navigate("/profile/security/photo")}>
-            <div className={styles.statHeader}>
-              <p className={styles.blockTitle}>Foto de Perfil</p>
-              <ImageIcon className="w-4 h-4 text-gray-medium" />
-            </div>
-            <p className={styles.statSubtext}>Atualizar imagem do perfil</p>
-          </div>
-
+      <h1 className={styles.title}>Segurança</h1>
+      <div className={styles.panelGrid}>
+        <div
+          className={styles.modernCard}
+          onClick={() => navigate("/profile/security/name")}
+          role="button"
+          tabIndex={0}
+          onKeyPress={(e) => e.key === "Enter" && navigate("/profile/security/name")}
+        >
+          <UserCircle2 size={28} className={styles.iconSecurity} />
+          <h2 className={styles.cardTitle}>Nome completo</h2>
+          <p className={styles.cardDescription}>Editar nome de exibição</p>
         </div>
-      </section>
+
+        <div
+          className={styles.modernCard}
+          onClick={() => navigate("/profile/security/username")}
+          role="button"
+          tabIndex={0}
+          onKeyPress={(e) => e.key === "Enter" && navigate("/profile/security/username")}
+        >
+          <User size={28} className={styles.iconSubscription} />
+          <h2 className={styles.cardTitle}>Usuário</h2>
+          <p className={styles.cardDescription}>Editar nome de usuário</p>
+        </div>
+
+        <div
+          className={styles.modernCard}
+          onClick={() => navigate("/profile/security/email")}
+          role="button"
+          tabIndex={0}
+          onKeyPress={(e) => e.key === "Enter" && navigate("/profile/security/email")}
+        >
+          <Mail size={28} className={styles.iconProjects} />
+          <h2 className={styles.cardTitle}>Email</h2>
+          <p className={styles.cardDescription}>Alterar endereço de email</p>
+        </div>
+
+        <div
+          className={styles.modernCard}
+          onClick={() => navigate("/profile/security/password")}
+          role="button"
+          tabIndex={0}
+          onKeyPress={(e) => e.key === "Enter" && navigate("/profile/security/password")}
+        >
+          <Lock size={28} className={styles.iconSupport} />
+          <h2 className={styles.cardTitle}>Senha</h2>
+          <p className={styles.cardDescription}>Atualizar senha de acesso</p>
+        </div>
+
+        <div
+          className={styles.modernCard}
+          onClick={() => navigate("/profile/security/photo")}
+          role="button"
+          tabIndex={0}
+          onKeyPress={(e) => e.key === "Enter" && navigate("/profile/security/photo")}
+        >
+          <ImageIcon size={28} className={styles.iconSecurity} />
+          <h2 className={styles.cardTitle}>Foto de Perfil</h2>
+          <p className={styles.cardDescription}>Atualizar imagem do perfil</p>
+        </div>
+      </div>
+    </section>
     </Layout>
   );
 }

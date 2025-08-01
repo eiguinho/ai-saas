@@ -67,46 +67,42 @@ export default function Profile() {
         <h1 className={styles.title}>Minha Conta</h1>
         <div className={styles.panelGrid}>
           <div
-            className={`${styles.statCard} cursor-pointer`}
+            className={`${styles.modernCard} ${styles.modernCardSecurity}`}
             onClick={handleSecurityClick}
+            role="button"
+            tabIndex={0}
+            onKeyPress={(e) => e.key === "Enter" && handleSecurityClick()}
           >
-            <div className={styles.statHeader}>
-              <p className={styles.blockTitle}>Segurança</p>
-              <ShieldCheck className="w-4 h-4 text-gray-medium" />
-            </div>
-            <p className={`${styles.statSubtext} text-sm`}>
-              Gerencie email e senha
-            </p>
+            <ShieldCheck size={28} className={styles.iconSecurity} />
+            <h2 className={styles.cardTitle}>Segurança</h2>
+            <p className={styles.cardDescription}>Gerencie email e senha</p>
           </div>
 
-          <Link to="/profile/billing" className={styles.statCard}>
-            <div className={styles.statHeader}>
-              <p className={styles.blockTitle}>Assinatura</p>
-              <CreditCard className="w-4 h-4 text-gray-medium" />
-            </div>
-            <p className={`${styles.statSubtext} text-sm`}>
-              Plano atual e pagamentos
-            </p>
+          <Link
+            to="/profile/billing"
+            className={`${styles.modernCard} ${styles.modernCardSubscription}`}
+          >
+            <CreditCard size={28} className={styles.iconSubscription} />
+            <h2 className={styles.cardTitle}>Assinatura</h2>
+            <p className={styles.cardDescription}>Plano atual e pagamentos</p>
           </Link>
 
-          <Link to="/workspace/projects" className={styles.statCard}>
-            <div className={styles.statHeader}>
-              <p className={styles.blockTitle}>Projetos</p>
-              <FileText className="w-4 h-4 text-gray-medium" />
-            </div>
-            <p className={`${styles.statSubtext} text-sm`}>
-              Acesse seus projetos
-            </p>
+          <Link
+            to="/workspace/projects"
+            className={`${styles.modernCard} ${styles.modernCardProjects}`}
+          >
+            <FileText size={28} className={styles.iconProjects} />
+            <h2 className={styles.cardTitle}>Projetos</h2>
+            <p className={styles.cardDescription}>Acesse seus projetos</p>
           </Link>
 
-          <Link to="/profile/support" className={styles.statCard}>
-            <div className={styles.statHeader}>
-              <p className={styles.blockTitle}>Suporte</p>
-              <HelpCircle className="w-4 h-4 text-gray-medium" />
-            </div>
-            <p className={`${styles.statSubtext} text-sm`}>
-              Central de ajuda
-            </p>
+          <Link
+            to="/profile/support"
+            className={`${styles.modernCard} ${styles.modernCardSupport}`}
+          >
+            <HelpCircle size={28} className={styles.iconSupport} />
+            <h2 className={styles.cardTitle}>Suporte</h2>
+            <p className={styles.cardDescription}>Central de ajuda</p>
           </Link>
         </div>
       </section>
