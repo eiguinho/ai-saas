@@ -43,6 +43,7 @@ export default function useContentsFetch() {
   return {
     loading,
     allContents,
+    setAllContents,
     handleDeleteContent,
   };
 }

@@ -54,8 +54,8 @@ export default function SortMenu({ activeTab, sortBy, setSortBy }) {
             Por nome
           </button>
 
-          {/* Só mostra esses dois abaixo para tabs que não sejam "project" */}
-          {activeTab !== "project" && (
+          {/* Só mostra "Por modelo" e "Por duração" se NÃO for nem "project" nem "notifications" */}
+          {activeTab !== "project" && activeTab !== "notifications" && (
             <>
               <button
                 onClick={() => {

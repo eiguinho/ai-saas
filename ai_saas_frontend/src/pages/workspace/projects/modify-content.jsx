@@ -243,6 +243,7 @@ export default function ModifyContent() {
                     selectionMode={selectionMode}
                     selected={selectedItems.some((sel) => sel.id === content.id)}
                     onToggleSelect={toggleSelect}
+                    showDelete={false}
                   />
                 ))
             )}

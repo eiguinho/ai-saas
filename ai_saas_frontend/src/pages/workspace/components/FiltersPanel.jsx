@@ -13,6 +13,10 @@ export default function FiltersPanel({
   activeTab,
   dateFilter,
   setDateFilter,
+
+  filterReadStatus,      // Novo filtro para notificações
+  setFilterReadStatus,   // Setter
+
   filterModel,
   setFilterModel,
   filterStyle,
@@ -54,6 +58,7 @@ export default function FiltersPanel({
         <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-md shadow-lg p-4 z-50 animate-fadeIn">
           <h3 className="text-sm font-semibold mb-2">Filtros Avançados</h3>
 
+          {/* FILTRO DATA */}
           <label className="block text-xs text-gray-600 mb-1 mt-2">Data</label>
           <select
             value={dateFilter}
@@ -65,9 +70,26 @@ export default function FiltersPanel({
             <option value="30days">Últimos 30 dias</option>
           </select>
 
-          {activeTab !== "project" && (
+          {/* FILTRO LEITURA - APENAS NA TELA DE NOTIFICAÇÕES */}
+          {activeTab === "notifications" && (
             <>
-              {/* Modelos */}
+              <label className="block text-xs text-gray-600 mb-1 mt-2">Status de leitura</label>
+              <select
+                value={filterReadStatus}
+                onChange={(e) => setFilterReadStatus(e.target.value)}
+                className="bg-gray-50 rounded px-2 py-1 shadow-sm focus:outline-none focus:shadow-md text-black"
+              >
+                <option value="">Todos</option>
+                <option value="read">Somente lidos</option>
+                <option value="unread">Somente não lidos</option>
+              </select>
+            </>
+          )}
+
+          {/* OS DEMAIS FILTROS SÓ APARECEM SE NÃO FOR A TELA DE NOTIFICAÇÕES E SE ACTIVE TAB FOR DIFERENTE DE "project" */}
+          {activeTab !== "notifications" && activeTab !== "project" && (
+            <>
+              {/* FILTRO MODELO */}
               <label className="block text-xs text-gray-600 mb-1 mt-2">Modelo</label>
               <select
                 value={filterModel}
@@ -87,6 +109,7 @@ export default function FiltersPanel({
                 ))}
               </select>
 
+              {/* FILTRO ESTILO */}
               {(activeTab === "image" || activeTab === "video") && (
                 <>
                   <label className="block text-xs text-gray-600 mb-1 mt-2">Estilo</label>
@@ -105,6 +128,7 @@ export default function FiltersPanel({
                 </>
               )}
 
+              {/* FILTRO PROPORÇÃO */}
               {activeTab === "image" && (
                 <>
                   <label className="block text-xs text-gray-600 mb-1 mt-2">Proporção</label>
@@ -123,6 +147,7 @@ export default function FiltersPanel({
                 </>
               )}
 
+              {/* FILTROS DE TEMPERATURA - SOMENTE TEXT */}
               {activeTab === "text" && (
                 <div className="flex gap-2 mt-1">
                   <div className="flex-1">
@@ -148,6 +173,7 @@ export default function FiltersPanel({
                 </div>
               )}
 
+              {/* FILTROS DE DURAÇÃO - SOMENTE VIDEO */}
               {activeTab === "video" && (
                 <div className="flex gap-2 mt-1">
                   <div className="flex-1">
@@ -183,6 +209,7 @@ export default function FiltersPanel({
               setFilterDurMin("");
               setFilterDurMax("");
               setDateFilter("");
+              setFilterReadStatus && setFilterReadStatus(""); // limpar filtro leitura também se existir
             }}
             className="w-full text-xs text-gray-600 hover:underline mt-4"
           >

@@ -1,3 +1,10 @@
+export function fixDateString(dateStr) {
+  if (!dateStr) return null;
+  const cleaned = dateStr.replace(/\.\d+$/, "");
+  const fixed = cleaned.endsWith("Z") ? cleaned : cleaned + "Z";
+  return new Date(fixed);
+}
+
 export function formatDate(dateStr) {
   if (!dateStr) return "";
   const fixed = dateStr.includes("T") ? dateStr : dateStr.replace(" ", "T") + "Z";

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import { notificationRoutes } from "../services/apiRoutes";
+import { fixDateString } from "../utils/dateUtils";
 
 const NotificationContext = createContext();
 
@@ -13,8 +14,14 @@ export function NotificationProvider({ children }) {
       if (!res.ok) throw new Error("Erro ao buscar notificações");
       const data = await res.json();
 
-      setNotifications(data.notifications || []);
-      setUnreadCount((data.notifications || []).filter((n) => !n.is_read).length);
+      // Corrige as datas antes de salvar no estado
+      const fixedNotifications = (data.notifications || []).map((n) => ({
+        ...n,
+        created_at: fixDateString(n.created_at),
+      }));
+
+      setNotifications(fixedNotifications);
+      setUnreadCount(fixedNotifications.filter((n) => !n.is_read).length);
     } catch (err) {
       console.error("Erro ao carregar notificações:", err);
     }
