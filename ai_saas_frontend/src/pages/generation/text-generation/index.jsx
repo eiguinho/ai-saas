@@ -3,8 +3,9 @@ import styles from './text.module.css';
 import Layout from "../../../components/layout/Layout";
 import { Loader2, Send, Settings } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { generatedContentRoutes, notificationRoutes } from '../../../services/apiRoutes';
+import { generatedContentRoutes, notificationRoutes, aiRoutes } from '../../../services/apiRoutes';
 import { useNotifications } from "../../../context/NotificationContext";
+import { TEXT_MODELS } from "../../../utils/constants";
 
 function TextGeneration() {
   const [prompt, setPrompt] = useState("");
@@ -14,6 +15,7 @@ function TextGeneration() {
   const [model, setModel] = useState("gpt-4o");
   const [loading, setLoading] = useState(false);
   const { fetchNotifications } = useNotifications();
+  const isTemperatureLocked = model.startsWith("o") || model.startsWith("gpt-5");
 
   const percentage = ((maxTokens - 100) / (2000 - 100)) * 100;
   const percentageTemperature = temperature * 100;
@@ -26,42 +28,54 @@ function TextGeneration() {
     setLoading(true);
     setResult("");
     try {
-      const simulatedText = `prompt: "${prompt}"
+    const aiRes = await fetch(aiRoutes.generateText, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt, model, temperature: isTemperatureLocked ? 1 : temperature, max_tokens: maxTokens }),
+    });
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin at diam ac erat suscipit tempus.
-Curabitur euismod, lorem at viverra luctus, sapien arcu ullamcorper ligula, at malesuada leo urna a lorem.
-Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.`;
+    if (!aiRes.ok) {
+      const errorData = await aiRes.json();
+      throw new Error(errorData.error || "Erro ao gerar texto");
+    }
 
-      const res = await fetch(generatedContentRoutes.create, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          content_type: "text",
-          prompt,
-          model_used: model,
-          temperature: temperature,
-          content_data: simulatedText,
-          file_path: null
-        }),
-      });
+    const aiData = await aiRes.json();
 
-      if (!res.ok) throw new Error("Erro ao salvar texto gerado");
-      const data = await res.json();
-      setResult(data.content.content_data || simulatedText);
-      toast.success("Texto gerado (simulado) e salvo com sucesso!");
-      await fetch(notificationRoutes.create, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: `Texto gerado com sucesso: "${
-            prompt.length > 40 ? prompt.slice(0, 40) + "..." : prompt
-          }"`,
-          link: "/workspace/generated-contents"
-        }),
-      });
-      fetchNotifications();
+    const saveRes = await fetch(generatedContentRoutes.create, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        content_type: "text",
+        prompt: aiData.prompt,
+        model_used: aiData.model_used,
+        temperature: isTemperatureLocked ? 1 : aiData.temperature,
+        content_data: aiData.generated_text,
+        file_path: null
+      }),
+    });
+
+    if (!saveRes.ok) {
+      const errorSave = await saveRes.json();
+      throw new Error(errorSave.error || "Erro ao salvar texto");
+    }
+
+    const savedData = await saveRes.json();
+    setResult(savedData.content.content_data);
+    toast.success("Texto gerado e salvo com sucesso!");
+
+    await fetch(notificationRoutes.create, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: `Texto gerado com sucesso: "${prompt.length > 40 ? prompt.slice(0, 40) + "..." : prompt}"`,
+        link: "/workspace/generated-contents"
+      }),
+    });
+
+    fetchNotifications();
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -90,24 +104,33 @@ Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac tu
                 onChange={(e) => setModel(e.target.value)}
                 className={styles.selectClean}
               >
-                <option value="gpt-4o">GPT-4o</option>
-                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                <option value="gemini-pro">Google Gemini Pro</option>
-                <option value="claude-3">Claude 3</option>
+                {TEXT_MODELS.map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="flex flex-col mb-4">
-              <label className={styles.blockTitle}>Temperatura: {temperature}</label>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                value={temperature}
-                onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                className={styles.inputRangeCustom}
-                style={{ '--range-percent': `${percentageTemperature}%` }}
-              />
+              <label className={styles.blockTitle}>
+                Temperatura: {isTemperatureLocked ? "1 (fixa)" : temperature}
+              </label>
+              {!isTemperatureLocked ? (
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value={temperature}
+                  onChange={(e) => setTemperature(parseFloat(e.target.value))}
+                  className={styles.inputRangeCustom}
+                  style={{ '--range-percent': `${percentageTemperature}%` }}
+                />
+              ) : (
+                <p className="text-sm text-gray-500">
+                  Este modelo não permite ajuste de temperatura.
+                </p>
+              )}
             </div>
             <div className="flex flex-col">
               <label className={styles.blockTitle}>Max Tokens: {maxTokens}</label>
@@ -149,18 +172,20 @@ Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac tu
           </div>
         </div>
         <div className={styles.panelGrid}>
-          <div className={`${styles.statCard} flex flex-col flex-1 col-start-2`}>
+        <div className={`${styles.statCard} flex flex-col flex-1 col-start-1 md:col-start-2`}>
+          <div className="mb-2">
             <p className={styles.blockSubtitle}>Resultado</p>
             <p className={`${styles.statSubtext} text-sm`}>Texto gerado pela IA</p>
-            <div className="flex flex-1 justify-center items-center text-center min-h-[20vh] px-4">
-              {result ? (
-                <p className="text-gray-800 whitespace-pre-line text-sm">{result}</p>
-              ) : (
-                <p className="text-gray-500">O texto gerado aparecerá aqui</p>
-              )}
-            </div>
+          </div>
+          <div className="flex flex-col bg-white border border-gray-200 rounded-lg p-4 shadow-sm min-h-[20vh] max-h-[60vh] overflow-y-auto">
+            {result ? (
+              <p className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap break-words">{result}</p>
+            ) : (
+              <p className="text-gray-400 text-sm italic">O texto gerado aparecerá aqui</p>
+            )}
           </div>
         </div>
+      </div>
       </section>
     </Layout>
   );

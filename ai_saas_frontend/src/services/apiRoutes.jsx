@@ -61,4 +61,8 @@ export const notificationRoutes = {
 
 export const plansRoutes = {
   list: `${API_BASE}/plans`,   // GET → lista todos os planos
+}; 
+
+export const aiRoutes = {
+  generateText: `${API_BASE}/ai/generate-text`,  // POST → gerar texto via IA
 };

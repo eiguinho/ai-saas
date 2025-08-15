@@ -4,12 +4,9 @@ export default function ContentPreview({ content, isModal = false }) {
 
   if (content.content_type === "text") {
     const text = content.content_data || content.prompt;
-    const truncated =
-      text?.length > (isModal ? 500 : 150)
-        ? text.substring(0, isModal ? 500 : 150) + "..."
-        : text;
+    const displayText = isModal ? text : text?.length > 150 ? text.substring(0, 150) + "..." : text;
 
-    return <div className="text-xs text-gray-700 line-clamp-3">{truncated}</div>;
+    return <div className={`text-xs text-gray-700 ${isModal ? "whitespace-pre-wrap break-words" : "line-clamp-3"}`}>{displayText}</div>;
   }
 
   if (content.content_type === "image") {

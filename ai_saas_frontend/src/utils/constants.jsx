@@ -1,8 +1,19 @@
 export const TEXT_MODELS = [
   { value: "gpt-4o", label: "GPT-4o" },
-  { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo" },
-  { value: "gemini-pro", label: "Google Gemini Pro" },
-  { value: "claude-3", label: "Claude 3" },
+  { value: "gpt-4.1-mini", label: "GPT-4.1 Mini" },
+  { value: "gpt-4o-mini", label: "GPT-4o Mini" },
+  { value: "o1", label: "O1" },
+  { value: "o1-mini", label: "O1 Mini" },
+  { value: "o3", label: "O3" },
+  { value: "o3-mini", label: "O3 Mini" },
+  { value: "o4-mini", label: "O4 Mini" },
+  { value: "gpt-4.1", label: "GPT-4.1" },
+  { value: "gpt-5-2025-08-07", label: "GPT-5" },
+  { value: "gpt-5-mini", label: "GPT-5 Mini" },
+  { value: "deepseek/deepseek-chat-v3-0324:free", label: "DeepSeek Chat V3" },
+  { value: "deepseek/deepseek-r1-0528:free", label: "DeepSeek R1 0528" },
+  { value: "tngtech/deepseek-r1t2-chimera:free", label: "DeepSeek R1T2 Chimera" },
+  { value: "google/gemini-2.0-flash-exp:free", label: "Gemini 2.0 Flash Exp" },
 ];
 
 export const IMAGE_MODELS = [

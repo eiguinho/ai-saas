@@ -1,6 +1,7 @@
 import { FileText, Image, Video, Trash2 } from "lucide-react";
 import ContentPreview from "./ContentPreview";
 import { formatDateTime } from "../../../utils/dateUtils";
+import { TEXT_MODELS } from "../../../utils/constants";
 
 export default function ContentCard({
   content,
@@ -63,7 +64,7 @@ export default function ContentCard({
         </div>
 
         <p className="mt-auto text-xs text-gray-700 pt-2 font-medium">
-          Modelo: <span>{content.model_used}</span>
+          Modelo: <span>{TEXT_MODELS.find(m => m.value === content.model_used)?.label || content.model_used}</span>
         </p>
       </div>
     </div>
