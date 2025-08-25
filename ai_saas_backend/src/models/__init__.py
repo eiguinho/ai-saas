@@ -9,6 +9,7 @@ from .generated_content import (
 from .notification import Notification
 from .associations import project_content_association
 from .plan import Plan
+from .chat import Chat
 
 __all__ = [
     "User",
@@ -19,5 +20,6 @@ __all__ = [
     "GeneratedImageContent",
     "GeneratedVideoContent",
     "project_content_association",
-    "Notification"
+    "Notification",
+    "Chat"
 ]

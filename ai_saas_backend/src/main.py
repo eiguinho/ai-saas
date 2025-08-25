@@ -5,7 +5,7 @@ from flask_jwt_extended.exceptions import RevokedTokenError
 from dotenv import load_dotenv
 from extensions import bcrypt, jwt, db, limiter, jwt_required, get_jwt_identity, create_access_token
 from utils import check_if_token_revoked, create_default_plans
-from routes import user_api, admin_api, auth_api, email_api, profile_api, project_api, generated_content_api, notification_api, plan_api, ai_generation_api
+from routes import user_api, admin_api, auth_api, email_api, profile_api, project_api, generated_content_api, notification_api, plan_api, ai_generation_api, chat_api
 from models import User, Plan
 import os
 
@@ -15,7 +15,7 @@ app = Flask(__name__)
 CORS(
     app,
     supports_credentials=True,  
-    origins=["http://localhost:5173"],  # ou "*" se for dev
+    origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:8000", "http://127.0.0.1:8000"],  # ou "*" se for dev
     allow_headers=["Content-Type", "Authorization"],
     methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"]
 )
@@ -83,6 +83,7 @@ app.register_blueprint(plan_api, url_prefix="/api/plan")
 app.register_blueprint(generated_content_api, url_prefix="/api/contents")
 app.register_blueprint(notification_api, url_prefix="/api/notifications")
 app.register_blueprint(ai_generation_api, url_prefix="/api/ai")
+app.register_blueprint(chat_api, url_prefix="/api/chats")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="127.0.0.1", port=8000, debug=True)

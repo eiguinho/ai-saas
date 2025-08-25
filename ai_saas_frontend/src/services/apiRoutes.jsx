@@ -52,8 +52,8 @@ export const generatedContentRoutes = {
 };
 
 export const notificationRoutes = {
-  list: `${API_BASE}/notifications`,
-  create: `${API_BASE}/notifications`,
+  list: `${API_BASE}/notifications/`,
+  create: `${API_BASE}/notifications/`,
   markRead: `${API_BASE}/notifications/mark-read`, // marca todas
   markSingle: (id) => `${API_BASE}/notifications/${id}/mark-read`, // marca só 1
   delete: (id) => `${API_BASE}/notifications/${id}` // delete uma
@@ -65,4 +65,16 @@ export const plansRoutes = {
 
 export const aiRoutes = {
   generateText: `${API_BASE}/ai/generate-text`,  // POST → gerar texto via IA
+};
+
+export const chatRoutes = {
+  list: `${API_BASE}/chats/`,                         // GET → lista todos os chats do usuário
+  create: `${API_BASE}/chats/`,                       // POST → cria novo chat
+  get: (chatId) => `${API_BASE}/chats/${chatId}`,     // GET → detalhes de um chat específico
+  update: (chatId) => `${API_BASE}/chats/${chatId}`,  // PUT → atualizar título, prompt ou modelo
+  delete: (chatId) => `${API_BASE}/chats/${chatId}`,  // DELETE → remover chat
+  archive: (chatId) => `${API_BASE}/chats/${chatId}/archive`,    // PATCH → arquivar chat
+  unarchive: (chatId) => `${API_BASE}/chats/${chatId}/unarchive`,// PATCH → desarquivar chat
+  messages: (chatId) => `${API_BASE}/chats/${chatId}?with_messages=true`, // GET → lista mensagens
+  attachments: (attachmentId) => `${API_BASE}/chats/attachments/${attachmentId}`,
 };

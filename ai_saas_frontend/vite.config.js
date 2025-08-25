@@ -9,8 +9,15 @@ export default defineConfig({
     react()
   ],
   server: {
-    proxy: {
-      '/api': 'http://localhost:5000',
+  host: true,  // aceita qualquer IP da rede
+  port: 3000,  // porta do front
+  strictPort: true,
+  proxy: {
+    '/api': {
+      target: 'http://localhost:8000/',
+      changeOrigin: true,
+      secure: false,
     },
   },
+}
 })

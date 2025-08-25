@@ -8,3 +8,4 @@ from .generated_content_api import generated_content_api
 from .notification_api import notification_api
 from .plan_api import plan_api
 from .ai_generation_api import ai_generation_api
+from .chat_api import chat_api

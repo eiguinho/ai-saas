@@ -172,3 +172,29 @@
 .animate-fadeIn {
   animation: fadeIn 0.2s ease forwards;
 }
+
+/* Scrollbar para toda a aplicação */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #ffffff; /* cor de fundo do track */
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #1e40af; /* azul, pode usar var(--color-primary) */
+  border-radius: 9999px;
+  border: 2px solid #ffffff; /* dá espaço em volta da thumb */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #2563eb; /* azul mais claro ao passar mouse */
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #1e40af #ffffff;
+}

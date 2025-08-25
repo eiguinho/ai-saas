@@ -1,192 +1,87 @@
-import { useState } from 'react';
-import styles from './text.module.css';
+import { useState } from "react";
 import Layout from "../../../components/layout/Layout";
-import { Loader2, Send, Settings } from 'lucide-react';
-import { toast } from 'react-toastify';
-import { generatedContentRoutes, notificationRoutes, aiRoutes } from '../../../services/apiRoutes';
-import { useNotifications } from "../../../context/NotificationContext";
+import MessageBubble from "../components/chat/MessageBubble";
+import ChatInput from "../components/chat/ChatInput";
+import ChatControls from "../components/controls/ChatControls";
+import Sidebar from "../components/chat/Sidebar";
 import { TEXT_MODELS } from "../../../utils/constants";
+import useChats from "../hooks/useChats";
+import useChatActions from "../hooks/useChatActions";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 function TextGeneration() {
-  const [prompt, setPrompt] = useState("");
-  const [result, setResult] = useState("");
+  const { chats, chatId, messages, setMessages, chatVisible, chatIdSetter, loadChat, createNewChat, updateChatList } = useChats();
+
+  const [input, setInput] = useState("");
+  const [model, setModel] = useState("gpt-4o");
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(1000);
-  const [model, setModel] = useState("gpt-4o");
-  const [loading, setLoading] = useState(false);
-  const { fetchNotifications } = useNotifications();
+  const [files, setFiles] = useState([]);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mainSidebarCollapsed, setMainSidebarCollapsed] = useState(true);
+
   const isTemperatureLocked = model.startsWith("o") || model.startsWith("gpt-5");
+  const currentModelObj = TEXT_MODELS.find((m) => m.value === model);
+  const attachmentsAllowed = currentModelObj?.attachments ?? true;
 
-  const percentage = ((maxTokens - 100) / (2000 - 100)) * 100;
-  const percentageTemperature = temperature * 100;
+  const toggleSidebar = () => setSidebarCollapsed((prev) => !prev);
 
-  async function handleGenerate() {
-    if (!prompt.trim()) {
-      toast.warning("Digite um prompt antes de gerar!");
-      return;
-    }
-    setLoading(true);
-    setResult("");
-    try {
-    const aiRes = await fetch(aiRoutes.generateText, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt, model, temperature: isTemperatureLocked ? 1 : temperature, max_tokens: maxTokens }),
-    });
-
-    if (!aiRes.ok) {
-      const errorData = await aiRes.json();
-      throw new Error(errorData.error || "Erro ao gerar texto");
-    }
-
-    const aiData = await aiRes.json();
-
-    const saveRes = await fetch(generatedContentRoutes.create, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        content_type: "text",
-        prompt: aiData.prompt,
-        model_used: aiData.model_used,
-        temperature: isTemperatureLocked ? 1 : aiData.temperature,
-        content_data: aiData.generated_text,
-        file_path: null
-      }),
-    });
-
-    if (!saveRes.ok) {
-      const errorSave = await saveRes.json();
-      throw new Error(errorSave.error || "Erro ao salvar texto");
-    }
-
-    const savedData = await saveRes.json();
-    setResult(savedData.content.content_data);
-    toast.success("Texto gerado e salvo com sucesso!");
-
-    await fetch(notificationRoutes.create, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: `Texto gerado com sucesso: "${prompt.length > 40 ? prompt.slice(0, 40) + "..." : prompt}"`,
-        link: "/workspace/generated-contents"
-      }),
-    });
-
-    fetchNotifications();
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const { loading, messagesEndRef, handleSend, handleStop } = useChatActions({
+    chatId,
+    setChatId: chatIdSetter,
+    messages,
+    setMessages,
+    updateChatList,
+  });
 
   return (
-    <Layout>
-      <section className={`${styles.section} space-y-6`}>
-        <div>
-          <h1 className={styles.title}>Geração de Texto</h1>
-          <p className="text-gray-600">Use LLMs avançados para gerar conteúdo de alta qualidade</p>
+    <Layout mainSidebarCollapsed={mainSidebarCollapsed}>
+      <div className="flex w-full h-[calc(100vh-120px)] overflow-hidden bg-gray-50 font-inter">
+        <div className={`absolute top-0 left-0 h-full transition-all duration-300 z-40 ${sidebarCollapsed ? "-ml-72" : "ml-0"}`}>
+          <Sidebar chats={chats} chatId={chatId} loadChat={loadChat} createNewChat={createNewChat} updateChatList={updateChatList} />
         </div>
-        <div className={styles.panelGrid}>
-          <div className={styles.statCard}>
-            <div className={styles.statHeader}>
-              <Settings className="w-5 h-5 text-black mr-2" />
-              <p className={styles.blockSubtitle}>Configurações</p>
-            </div>
-            <div className="flex flex-col mb-2">
-              <label htmlFor="model" className={styles.blockTitle}>Modelo</label>
-              <select
-                id="model"
-                value={model}
-                onChange={(e) => setModel(e.target.value)}
-                className={styles.selectClean}
-              >
-                {TEXT_MODELS.map((m) => (
-                  <option key={m.value} value={m.value}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex flex-col mb-4">
-              <label className={styles.blockTitle}>
-                Temperatura: {isTemperatureLocked ? "1 (fixa)" : temperature}
-              </label>
-              {!isTemperatureLocked ? (
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={temperature}
-                  onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                  className={styles.inputRangeCustom}
-                  style={{ '--range-percent': `${percentageTemperature}%` }}
-                />
-              ) : (
-                <p className="text-sm text-gray-500">
-                  Este modelo não permite ajuste de temperatura.
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col">
-              <label className={styles.blockTitle}>Max Tokens: {maxTokens}</label>
-              <input
-                type="range"
-                min="100"
-                max="2000"
-                step="100"
-                value={maxTokens}
-                onChange={(e) => setMaxTokens(parseInt(e.target.value))}
-                className={styles.inputRangeCustom}
-                style={{ '--range-percent': `${percentage}%` }}
-              />
-            </div>
+
+        <button
+          onClick={() => { setMainSidebarCollapsed((prev) => !prev); toggleSidebar(); }}
+          className={`absolute bottom-60 ${sidebarCollapsed ? "left-[0]" : "left-72"} z-40 h-16 w-6 flex items-center justify-center bg-gray-50 border border-gray-200 rounded-r-xl shadow hover:brightness-105 transition-all duration-300`}
+          title={sidebarCollapsed ? "Exibir chat" : "Ocultar chat"}
+        >
+          {sidebarCollapsed ? <ChevronRight className="w-5 h-5 text-blue-500" /> : <ChevronLeft className="w-5 h-5 text-blue-500" />}
+        </button>
+
+        <div
+          className="flex-1 flex flex-col h-full p-6 overflow-hidden transition-all duration-300"
+          style={{ marginLeft: sidebarCollapsed ? "0" : "18rem" }}
+        >
+          <div className={`flex-1 overflow-y-auto space-y-4 pr-2 transition-opacity duration-200 ${chatVisible ? "opacity-100" : "opacity-0"}`}>
+            {messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-[30vh] text-center">
+                <h2 className="text-4xl font-bold mt-12 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-theme-dark)]">Olá, como posso ajudar hoje?</h2>
+                <p className="text-gray-500 text-lg mt-4">Escolha diferentes modelos e teste novas ideias</p>
+              </div>
+            ) : messages.map((msg, i) => <MessageBubble key={i} msg={msg} />)}
+            <div ref={messagesEndRef} />
           </div>
-          <div className={`${styles.statCard} flex flex-col flex-1`}>
-            <p className={styles.blockSubtitle}>Prompt</p>
-            <p className={`${styles.statSubtext} text-sm`}>Descreva o que você gostaria que a IA gere</p>
-            <div className="flex flex-col mt-6">
-              <textarea
-                placeholder="Digite seu prompt aqui..."
-                rows={5}
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                className="w-full pl-4 pr-4 py-2 rounded-lg border text-black border-gray-300 text-sm shadow-sm focus:outline-none focus:shadow-md"
-              ></textarea>
-            </div>
-            <div className="flex justify-between items-center mt-6">
-              <p className={`${styles.statSubtext} text-sm`}>{prompt.length} caracteres</p>
-              <button
-                onClick={handleGenerate}
-                disabled={loading}
-                className={`${styles.btnBlack} ${styles.btnBlackStandard} flex items-center gap-2`}
-              >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                <span className="text-sm">{loading ? "Gerando..." : "Gerar"}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className={styles.panelGrid}>
-        <div className={`${styles.statCard} flex flex-col flex-1 col-start-1 md:col-start-2`}>
-          <div className="mb-2">
-            <p className={styles.blockSubtitle}>Resultado</p>
-            <p className={`${styles.statSubtext} text-sm`}>Texto gerado pela IA</p>
-          </div>
-          <div className="flex flex-col bg-white border border-gray-200 rounded-lg p-4 shadow-sm min-h-[20vh] max-h-[60vh] overflow-y-auto">
-            {result ? (
-              <p className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap break-words">{result}</p>
-            ) : (
-              <p className="text-gray-400 text-sm italic">O texto gerado aparecerá aqui</p>
-            )}
+
+          <div className="mt-4 flex flex-col gap-3 rounded-3xl shadow-xl p-6 border border-gray-200">
+            <ChatInput 
+              input={input} 
+              setInput={setInput} 
+              handleSend={() => {
+                handleSend({ input, files, model, temperature, maxTokens, isTemperatureLocked });
+                setInput("");
+                setFiles([]);
+              }} 
+              handleStop={handleStop} 
+              loading={loading} 
+              files={files} 
+              setFiles={setFiles} 
+              attachmentsAllowed={attachmentsAllowed} 
+            />
+            <ChatControls model={model} setModel={setModel} temperature={temperature} setTemperature={setTemperature} maxTokens={maxTokens} setMaxTokens={setMaxTokens} isTemperatureLocked={isTemperatureLocked} />
           </div>
         </div>
       </div>
-      </section>
     </Layout>
   );
 }

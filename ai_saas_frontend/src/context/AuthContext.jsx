@@ -9,27 +9,29 @@ export function AuthProvider({ children }) {
   const [securityVerified, setSecurityVerified] = useState(false);
 
   useEffect(() => {
-    async function loadUser() {
-      try {
-        const res = await fetch(userRoutes.getCurrentUser(), {
-          credentials: "include",
-        });
+  async function loadUser() {
+    try {
 
-        if (!res.ok) {
-          throw new Error("Sessão inválida ou expirada");
-        }
-
-        const data = await res.json();
-        setUser(data);
-      } catch (err) {
-        setUser(null);
-      } finally {
-        setLoading(false);
+      const res = await fetch(userRoutes.getCurrentUser(), {
+        credentials: "include", // cookies
+      });
+      if (!res.ok) {
+        throw new Error("Sessão inválida ou expirada");
       }
-    }
 
-    loadUser();
-  }, []);
+      const data = await res.json();
+
+      setUser(data);
+    } catch (err) {
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  loadUser();
+}, []);
+
 
   function loginSuccess(authData) {
     setUser(authData.user);
@@ -53,7 +55,7 @@ export function AuthProvider({ children }) {
         logout,
         loading,
         securityVerified,
-        setSecurityVerified, // NOVO
+        setSecurityVerified,
       }}
     >
       {children}

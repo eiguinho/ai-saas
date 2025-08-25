@@ -9,23 +9,24 @@ export function NotificationProvider({ children }) {
   const [unreadCount, setUnreadCount] = useState(0);
 
   const fetchNotifications = useCallback(async () => {
-    try {
-      const res = await fetch(notificationRoutes.list, { credentials: "include" });
-      if (!res.ok) throw new Error("Erro ao buscar notificações");
-      const data = await res.json();
+  try {
+    const res = await fetch(notificationRoutes.list, { credentials: "include" });
 
-      // Corrige as datas antes de salvar no estado
-      const fixedNotifications = (data.notifications || []).map((n) => ({
-        ...n,
-        created_at: fixDateString(n.created_at),
-      }));
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
 
-      setNotifications(fixedNotifications);
-      setUnreadCount(fixedNotifications.filter((n) => !n.is_read).length);
-    } catch (err) {
-      console.error("Erro ao carregar notificações:", err);
-    }
-  }, []);
+    const data = await res.json();
+
+    const fixedNotifications = (data.notifications || []).map((n) => ({
+      ...n,
+      created_at: fixDateString(n.created_at),
+    }));
+
+    setNotifications(fixedNotifications);
+    setUnreadCount(fixedNotifications.filter((n) => !n.is_read).length);
+  } catch (err) {
+    console.error("Erro ao buscar notifications:", err);
+  }
+}, []);
 
   return (
     <NotificationContext.Provider

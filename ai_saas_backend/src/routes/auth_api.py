@@ -185,7 +185,7 @@ def request_password_reset():
     token = secrets.token_urlsafe(64)
     redis_client.setex(f"reset_token:{token}", timedelta(hours=1), user.id)
 
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:80")
     reset_link = f"{frontend_url}/login/reset-password/{token}"
     send_reset_password_email(user.email, reset_link)
 
