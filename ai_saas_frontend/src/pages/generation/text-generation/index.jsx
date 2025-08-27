@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Layout from "../../../components/layout/Layout";
-import MessageBubble from "../components/chat/MessageBubble";
+import MessageListVirtualized from "../components/chat/MessageListVirtualized";
 import ChatInput from "../components/chat/ChatInput";
 import ChatControls from "../components/controls/ChatControls";
 import Sidebar from "../components/chat/Sidebar";
@@ -11,7 +11,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 function TextGeneration() {
   const { chats, chatId, messages, setMessages, chatVisible, chatIdSetter, loadChat, createNewChat, updateChatList } = useChats();
-
   const [input, setInput] = useState("");
   const [model, setModel] = useState("gpt-4o");
   const [temperature, setTemperature] = useState(0.7);
@@ -26,7 +25,7 @@ function TextGeneration() {
 
   const toggleSidebar = () => setSidebarCollapsed((prev) => !prev);
 
-  const { loading, messagesEndRef, handleSend, handleStop } = useChatActions({
+  const { loading, handleSend, handleStop } = useChatActions({
     chatId,
     setChatId: chatIdSetter,
     messages,
@@ -49,19 +48,21 @@ function TextGeneration() {
           {sidebarCollapsed ? <ChevronRight className="w-5 h-5 text-blue-500" /> : <ChevronLeft className="w-5 h-5 text-blue-500" />}
         </button>
 
-        <div
-          className="flex-1 flex flex-col h-full p-6 overflow-hidden transition-all duration-300"
-          style={{ marginLeft: sidebarCollapsed ? "0" : "18rem" }}
-        >
-          <div className={`flex-1 overflow-y-auto space-y-4 pr-2 transition-opacity duration-200 ${chatVisible ? "opacity-100" : "opacity-0"}`}>
-            {messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-[30vh] text-center">
-                <h2 className="text-4xl font-bold mt-12 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-theme-dark)]">Olá, como posso ajudar hoje?</h2>
-                <p className="text-gray-500 text-lg mt-4">Escolha diferentes modelos e teste novas ideias</p>
-              </div>
-            ) : messages.map((msg, i) => <MessageBubble key={i} msg={msg} />)}
-            <div ref={messagesEndRef} />
-          </div>
+        <div className="flex-1 flex flex-col h-full p-6 transition-all duration-300" style={{ marginLeft: sidebarCollapsed ? "0" : "18rem" }}>
+          {messages.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-center">
+              <h2 className="text-4xl font-bold mt-12 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-theme-dark)]">
+                Olá, como posso ajudar hoje?
+              </h2>
+              <p className="text-gray-500 text-lg mt-4">Escolha diferentes modelos e teste novas ideias</p>
+            </div>
+          ) : (
+            <MessageListVirtualized
+              messages={messages}
+              height={window.innerHeight - 200}
+              width="100%"
+            />
+          )}
 
           <div className="mt-4 flex flex-col gap-3 rounded-3xl shadow-xl p-6 border border-gray-200">
             <ChatInput 

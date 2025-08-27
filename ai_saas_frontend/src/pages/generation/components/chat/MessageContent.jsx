@@ -1,16 +1,16 @@
-import React from "react";
+import React, { useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Clipboard } from "lucide-react";
 
-export default function MessageContent({ content }) {
+function MessageContent({ content }) {
   const copyToClipboard = (code) => {
     navigator.clipboard.writeText(code);
   };
 
-  return (
+  const renderedMarkdown = useMemo(() => (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       components={{
@@ -57,5 +57,9 @@ export default function MessageContent({ content }) {
     >
       {content}
     </ReactMarkdown>
-  );
+  ), [content]);
+
+  return renderedMarkdown;
 }
+
+export default React.memo(MessageContent);

@@ -15,6 +15,7 @@ auth_api = Blueprint("auth_api", __name__)
 load_dotenv()
 
 # Criar usuário
+'''
 @auth_api.route("/", methods=["POST"])
 def create_user():
     data = request.form
@@ -83,7 +84,7 @@ def create_user():
     db.session.commit()
 
     return jsonify({"message": "Usuário criado com sucesso", "id": new_user.id}), 201
-
+'''
 
 # Login
 @auth_api.route("/login", methods=["POST"])
@@ -118,7 +119,7 @@ def login():
                 "role": user.role,
                 "plan": user.plan.name if user.plan else None,
                 "tokens_available": user.plan.tokens_available if user.plan else 0,
-                "payment_method": user.payment_method,
+                #"payment_method": user.payment_method,
                 "perfil_photo": user.perfil_photo,
                 "is_active": user.is_active,
                 "created_at": user.created_at.isoformat(),

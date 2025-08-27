@@ -10,7 +10,7 @@ class User(db.Model):
     email = db.Column(db.String, nullable=False, unique=True)
     password = db.Column(db.String, nullable=False)
     role = db.Column(db.String, default="user")
-    payment_method = db.Column(db.String, nullable=True)
+    #payment_method = db.Column(db.String, nullable=True)
     perfil_photo = db.Column(db.String, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

@@ -79,7 +79,7 @@ export default function Profile() {
           </div>
 
           <Link
-            to="/profile/billing"
+            to="/subscription"
             className={`${styles.modernCard} ${styles.modernCardSubscription}`}
           >
             <CreditCard size={28} className={styles.iconSubscription} />

@@ -3,7 +3,7 @@ import TypingIndicator from "./TypingIndicator";
 import MessageContent from "./MessageContent";
 import { chatRoutes } from "../../../../services/apiRoutes";
 
-export default function MessageBubble({ msg }) {
+function MessageBubble({ msg }) {
   const isUser = msg.role === "user";
   const { content, attachments } = msg;
 
@@ -35,8 +35,6 @@ export default function MessageBubble({ msg }) {
               {attachments.map((att, i) => {
                 const isImage = att.mimetype?.startsWith("image/");
                 const isPDF = att.mimetype === "application/pdf";
-
-                // 🔹 Se for preview, usa URL local, senão pega do backend
                 const attUrl = att.isPreview ? att.url : chatRoutes.attachments(att.id);
 
                 if (isPDF) {
@@ -90,3 +88,5 @@ export default function MessageBubble({ msg }) {
     </div>
   );
 }
+
+export default React.memo(MessageBubble);

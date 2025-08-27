@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from extensions import jwt_required, db
 from models.chat import Chat, ChatMessage, ChatAttachment, SenderType
 from flask_jwt_extended import get_jwt_identity
-import os, uuid, base64, requests
+import os, uuid, base64, requests, time
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -80,6 +80,17 @@ def build_messages_for_openai(session_messages, model: str):
 
 def build_messages_for_openrouter(session_messages, model: str):
     return build_messages_for_openai(session_messages, model)
+
+def make_request_with_retry(url, headers, body, max_retries=5, backoff=3):
+    for attempt in range(max_retries):
+        response = requests.post(url, headers=headers, json=body, timeout=120)
+        if response.status_code == 429:  # Too Many Requests
+            if attempt < max_retries - 1:
+                print("nova tentativa")
+                time.sleep(backoff * (attempt + 1))
+                continue
+        return response
+    return response
 
 @ai_generation_api.route("/generate-text", methods=["POST"])
 @jwt_required()
@@ -206,14 +217,17 @@ def generate_text():
                 body["max_tokens"] = max_tokens
                 body["temperature"] = temperature
 
-        response = requests.post(endpoint, headers=headers, json=body, timeout=120)
+        response = make_request_with_retry(endpoint, headers, body, max_retries=5, backoff=3)
+
+        if response.status_code == 429:
+            return jsonify({"error": "Muitas requisições. Tente novamente em instantes."}), 429
+
         if response.status_code != 200:
             return jsonify({"error": "Erro ao gerar o texto", "details": response.text}), response.status_code
 
         result = response.json()
         generated_text = result["choices"][0]["message"]["content"]
 
-        # 🔹 Salvar resposta IA
         ai_msg = ChatMessage(
             chat_id=chat.id,
             role=SenderType.AI.value,

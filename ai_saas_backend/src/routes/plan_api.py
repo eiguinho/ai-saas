@@ -3,7 +3,7 @@ from models import Plan
 
 plan_api = Blueprint("plan_api", __name__)
 
-@plan_api.route("/api/plans", methods=["GET"])
+@plan_api.route("/", methods=["GET"])
 def get_plans():
     plans = Plan.query.all()
     return jsonify([{

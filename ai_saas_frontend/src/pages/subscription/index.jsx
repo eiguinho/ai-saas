@@ -71,10 +71,10 @@ export default function Subscription() {
             </div>
             <h2 className={styles.cardTitle}>Melhorar Plano</h2>
             <p className={styles.description}>
-              Conheça o plano Premium com 1000 tokens adicionais e suporte prioritário.
+              Melhore seu plano na ARTIFICIALL para obter mais funcionalidades!
             </p>
             <button disabled className={styles.upgradeBtn} title="Funcionalidade ainda não implementada">
-              Adquirir Plano
+              Contate-nos
             </button>
           </div>
         </div>

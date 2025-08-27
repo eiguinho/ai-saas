@@ -29,7 +29,6 @@ def get_user(user_id):
         "id": user.id,
         "full_name": user.full_name,
         "username": user.username,
-        "payment_method": user.payment_method,
     }
     return jsonify(user_data), 200
 
@@ -81,9 +80,6 @@ def update_user(user_id):
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
         user.password = hashed_password
 
-    if "payment_method" in data:
-        user.payment_method = data["payment_method"]
-
     db.session.commit()
     return jsonify({"message": "Usuário atualizado com sucesso"}), 200
 
@@ -126,7 +122,7 @@ def get_current_user():
         "role": user.role,
         "plan": user.plan.name if user.plan else None,
         "tokens_available": user.plan.tokens_available if user.plan else 0,
-        "payment_method": user.payment_method,
+        #"payment_method": user.payment_method,
         "perfil_photo": user.perfil_photo,
         "is_active": user.is_active,
         "created_at": user.created_at.isoformat(),

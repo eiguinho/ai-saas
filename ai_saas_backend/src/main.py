@@ -2,12 +2,13 @@ from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_limiter.errors import RateLimitExceeded
 from flask_jwt_extended.exceptions import RevokedTokenError
+from flask_migrate import Migrate
 from dotenv import load_dotenv
 from extensions import bcrypt, jwt, db, limiter, jwt_required, get_jwt_identity, create_access_token
 from utils import check_if_token_revoked, create_default_plans
 from routes import user_api, admin_api, auth_api, email_api, profile_api, project_api, generated_content_api, notification_api, plan_api, ai_generation_api, chat_api
 from models import User, Plan
-import os
+import os, uuid
 
 load_dotenv()
 
@@ -38,6 +39,8 @@ app.config["JWT_ACCESS_COOKIE_NAME"] = "access_token_cookie"
 
 # Inicializa o SQLAlchemy
 db.init_app(app)
+# Flask Migrate
+migrate = Migrate(app, db)
 
 # Inicializa o Bcrypt
 bcrypt.init_app(app)
@@ -47,9 +50,42 @@ jwt.init_app(app)
 
 limiter.init_app(app)
 
+
+def create_default_admin():
+    admin_email = os.getenv("ADMIN_EMAIL")
+    admin_password = os.getenv("ADMIN_PASSWORD")
+    admin_name = os.getenv("ADMIN_NAME", "Administrador")
+    admin_username = os.getenv("ADMIN_USERNAME", "admin")
+
+    if not admin_email or not admin_password:
+        print("⚠️ Variáveis de admin não configuradas. Pulei criação do admin.")
+        return
+
+    existing_admin = User.query.filter_by(email=admin_email).first()
+    if existing_admin:
+        print("✅ Admin já existe.")
+        return
+
+    hashed_pw = bcrypt.generate_password_hash(admin_password).decode("utf-8")
+
+    admin = User(
+        id=str(uuid.uuid4()),
+        full_name=admin_name,
+        username=admin_username,
+        email=admin_email,
+        password=hashed_pw,
+        role="admin",
+        is_active=True
+    )
+
+    db.session.add(admin)
+    db.session.commit()
+    print(f"👑 Admin criado: {admin_email}")
+
 with app.app_context():
     db.create_all()
     create_default_plans()
+    create_default_admin()
 
 # Configura blacklist com JWTManager
 @jwt.token_in_blocklist_loader
@@ -79,7 +115,7 @@ app.register_blueprint(auth_api, url_prefix="/api/auth")
 app.register_blueprint(email_api, url_prefix="/api/email")
 app.register_blueprint(profile_api, url_prefix="/api/users")
 app.register_blueprint(project_api, url_prefix="/api/projects")
-app.register_blueprint(plan_api, url_prefix="/api/plan")
+app.register_blueprint(plan_api, url_prefix="/api/plans")
 app.register_blueprint(generated_content_api, url_prefix="/api/contents")
 app.register_blueprint(notification_api, url_prefix="/api/notifications")
 app.register_blueprint(ai_generation_api, url_prefix="/api/ai")
