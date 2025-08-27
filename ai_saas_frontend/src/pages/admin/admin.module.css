@@ -1,0 +1,28 @@
+@import "tailwindcss";
+@import "../../styles/theme.css";
+@import "../../styles/base.css";
+
+.title {
+  @apply text-3xl font-bold text-gray-900 mb-8;
+}
+
+/* Cards base */
+.modernCard {
+  @apply bg-white rounded-xl border border-gray-200 shadow-lg p-8 cursor-pointer flex flex-col items-center text-center transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl;
+}
+
+
+/* Cores dos ícones e bordas */
+.modernCardBlue {
+  border-color: #2563eb; /* azul-600 */
+  @apply hover:shadow-[0_8px_15px_-5px_rgba(37,99,235,0.5)];
+}
+
+.modernCardGreen {
+  border-color: #059669; /* verde-600 */
+  @apply hover:shadow-[0_8px_15px_-5px_rgba(5,150,105,0.5)];
+}
+
+.returnLink {
+  @apply flex items-center text-sm text-gray-700 px-2 py-1 rounded-md hover:bg-gray-200 hover:text-black transition w-fit mb-4;
+}

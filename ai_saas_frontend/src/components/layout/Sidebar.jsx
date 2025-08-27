@@ -69,7 +69,7 @@ export default function Sidebar({
           })}
           {user?.role === "admin" && (
             <Link
-              to="/adm"
+              to="/admin"
               className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition ${
                 location.pathname === "/adm" ? "bg-primary-dark/40 text-white" : ""
               }`}

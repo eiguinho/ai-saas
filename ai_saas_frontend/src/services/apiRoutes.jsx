@@ -1,7 +1,7 @@
 const API_BASE = "/api";
 
 export const authRoutes = {
-  register: `${API_BASE}/auth/`,                                 // POST → criar usuário
+  // register: `${API_BASE}/auth/`,                                 // POST → criar usuário
   login: `${API_BASE}/auth/login`,                               // POST → login
   logout: `${API_BASE}/auth/logout`,                             // POST → logout (JWT)
   verifyPassword: `${API_BASE}/auth/verify-password`,            // POST → verificar senha atual
@@ -29,8 +29,12 @@ export const userRoutes = {
 };
 
 export const adminRoutes = {
-  listUsers: () => `${API_BASE}/admin/users`,                    // GET all users (admin only)
+  listUsers: () => `${API_BASE}/admin/users`,                       // GET all users
+  createUser: () => `${API_BASE}/admin/users`,                      // POST → criar user
+  updateUserPlan: (id) => `${API_BASE}/admin/users/${id}/plan`,     // PUT → atualizar plano
+  updateUserStatus: (id) => `${API_BASE}/admin/users/${id}/status`, // PUT → atualizar role e is_active
 };
+
 
 export const projectRoutes = {
   list: `${API_BASE}/projects/`,                     // GET → lista projetos do usuário logado

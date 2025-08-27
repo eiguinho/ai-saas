@@ -12,7 +12,7 @@
 
 /* Cards base */
 .modernCard {
-  @apply bg-white rounded-xl border border-gray-200 shadow-lg p-8 cursor-pointer flex flex-col items-center text-center transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black;
+  @apply bg-white rounded-xl border border-gray-200 shadow-lg p-8 cursor-pointer flex flex-col items-center text-center transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl;
 }
 
 /* Cores dos ícones e bordas */

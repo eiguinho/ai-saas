@@ -3,6 +3,7 @@ import { useAuth } from "./context/AuthContext";
 import { PrivateRoute } from "./components/routes/PrivateRoute";
 import { FlowGuardRoute } from "./components/routes/FlowGuardRoute";
 import { SecurityGuardRoute } from "./components/routes/SecurityGuardRoute";
+import { AdminRoute } from "./components/routes/AdminRoute";
 
 import Home from "./pages/home";
 import Login from "./pages/auth/login";
@@ -28,6 +29,9 @@ import ModifyContent from "./pages/workspace/projects/modify-content";
 import GeneratedContentsList from "./pages/workspace/contents";
 import Subscription from "./pages/subscription";
 import NotificationsList from "./pages/notifications";
+import AdminPanel from "./pages/admin";
+import AdminUsersList from "./pages/admin/users/AdminUsersList";
+import AdminCreateUser from "./pages/admin/users/AdminCreateUser";
 
 function MainRoutes(){
   const { user, loading } = useAuth();
@@ -114,6 +118,36 @@ function MainRoutes(){
         element={
           <PrivateRoute>
             <Settings />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <PrivateRoute>
+            <AdminRoute>
+              <AdminPanel />
+            </AdminRoute>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <PrivateRoute>
+            <AdminRoute>
+              <AdminUsersList />
+            </AdminRoute>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/admin/users/create"
+        element={
+          <PrivateRoute>
+            <AdminRoute>
+              <AdminCreateUser />
+            </AdminRoute>
           </PrivateRoute>
         }
       />
