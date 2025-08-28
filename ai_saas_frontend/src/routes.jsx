@@ -231,25 +231,7 @@ function MainRoutes(){
       <Route path="/login/forgot-password" element={<ForgotPassword />} />
       <Route path="/login/reset-password/:token" element={<ResetPassword />} />
 
-      {/* FLUXO DE CADASTRO */}
       <Route path="/login" element={<Login />} />
-      <Route path="/verify-email" element={<EmailVerification />} />
-      <Route
-        path="/verify-code"
-        element={
-          <FlowGuardRoute allowedIf={true}>
-            <VerifyCode />
-          </FlowGuardRoute>
-        }
-      />
-      <Route
-        path="/register"
-        element={
-          <FlowGuardRoute allowedIf>
-            <Register />
-          </FlowGuardRoute>
-        }
-      />
     </Routes>
   );
 }

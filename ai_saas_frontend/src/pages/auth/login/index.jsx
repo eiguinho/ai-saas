@@ -89,12 +89,6 @@ function Login() {
             </button>
           </form>
           <p className={styles.statSubtext}>
-            Não tem conta?
-            <Link to="/verify-email" className={`${styles.linkSuccess} ${styles.linkSuccessWide}`}>
-              Cadastrar
-            </Link>
-          </p>
-          <p className={styles.statSubtext}>
             Esqueceu a Senha?
             <Link to="/login/forgot-password" className={`${styles.linkSuccess} ${styles.linkSuccessWide}`}>
               Recuperar

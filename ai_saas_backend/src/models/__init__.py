@@ -8,12 +8,18 @@ from .generated_content import (
 )
 from .notification import Notification
 from .associations import project_content_association
-from .plan import Plan
+from .plan import (
+    Plan,
+    Feature,
+    PlanFeature,
+) 
 from .chat import Chat
 
 __all__ = [
     "User",
     "Plan",
+    "Feature",
+    "PlanFeature",
     "Project",
     "GeneratedContent",
     "GeneratedTextContent",

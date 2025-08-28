@@ -23,7 +23,6 @@ def list_all_users():
                 "id": user.plan.id,
                 "name": user.plan.name
             } if user.plan else None,
-            "tokens_available": user.plan.tokens_available if user.plan else 0,
             "is_active": user.is_active
         })
     return jsonify(result)
@@ -111,8 +110,7 @@ def update_user_plan(user_id):
         "message": "Plano atualizado com sucesso",
         "user": {
             "id": user.id,
-            "plan": user.plan.name,
-            "tokens_available": user.plan.tokens_available
+            "plan": user.plan.name
         }
     }), 200
 

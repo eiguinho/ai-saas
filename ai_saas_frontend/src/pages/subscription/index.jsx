@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Layout from "../../components/layout/Layout";
 import SettingsModal from "../../components/modals/SettingsModal";
-import { UserCheck, TrendingUp } from "lucide-react"; // ícones modernos
+import { UserCheck, TrendingUp, CheckCircle, XCircle } from "lucide-react";
 import styles from "./subscription.module.css";
 
 export default function Subscription() {
@@ -12,12 +12,48 @@ export default function Subscription() {
   useEffect(() => {
     fetch("/api/users/me", { credentials: "include" })
       .then((res) => res.json())
-      .then((data) => setUser(data));
+      .then((data) => {
+        setUser(data);
+      });
   }, []);
 
-  const tokensUsedPercent = user
-    ? Math.min(100, Math.round((user.tokens_used / (user.tokens_available + user.tokens_used)) * 100))
-    : 0;
+  const renderFeatures = (features) => {
+    return (
+      <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        {features.map((pf) => {
+          const isEnabled = pf.value === "true";
+          const displayValue =
+            pf.value !== "true" && pf.value !== "false" ? pf.value : null;
+
+          return (
+            <li
+              key={pf.id}
+              className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-shadow shadow-sm hover:shadow-md text-sm"
+            >
+              {isEnabled ? (
+                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+              ) : (
+                <XCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+              )}
+              <div className="flex flex-col">
+                <span
+                  className="font-medium text-gray-900 dark:text-gray-100 line-clamp-3"
+                  style={{ display: "-webkit-box", WebkitBoxOrient: "vertical", overflow: "hidden" }}
+                >
+                  {pf.description}
+                </span>
+                {displayValue && (
+                  <span className="text-gray-600 dark:text-gray-300 text-xs">
+                    {displayValue}
+                  </span>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  };
 
   return (
     <Layout>
@@ -34,24 +70,15 @@ export default function Subscription() {
             onKeyDown={(e) => e.key === "Enter" && setShowInfoModal(true)}
           >
             <div className={styles.iconWrapper}>
-              <UserCheck size={40} color="#4ade80" />
+              <UserCheck size={40} color="#16a34a" />
             </div>
             <h2 className={styles.cardTitle}>Seu Plano Atual</h2>
             {user ? (
               <>
-                <p className={styles.planName}>{user.plan || "Não informado"}</p>
-                <div className={styles.progressBar}>
-                  <div
-                    className={styles.progressFill}
-                    style={{ width: `${tokensUsedPercent}%` }}
-                    aria-label={`${tokensUsedPercent}% tokens usados`}
-                  />
-                </div>
-                <p className={styles.tokenText}>
-                  Tokens usados: <strong>{user.tokens_used ?? 0}</strong> /{" "}
-                  <strong>{user.tokens_available + user.tokens_used ?? 0}</strong>
-                </p>
-                <p className={styles.tokenPercent}>{tokensUsedPercent}% usado</p>
+                <p className={styles.planName}>{user.plan?.name || "Não informado"}</p>
+                {Array.isArray(user.plan?.features) &&
+                  user.plan.features.length > 0 &&
+                  renderFeatures(user.plan.features)}
               </>
             ) : (
               <p>Carregando...</p>
@@ -73,7 +100,11 @@ export default function Subscription() {
             <p className={styles.description}>
               Melhore seu plano na ARTIFICIALL para obter mais funcionalidades!
             </p>
-            <button disabled className={styles.upgradeBtn} title="Funcionalidade ainda não implementada">
+            <button
+              disabled
+              className={styles.upgradeBtn}
+              title="Funcionalidade ainda não implementada"
+            >
               Contate-nos
             </button>
           </div>
@@ -88,20 +119,20 @@ export default function Subscription() {
         description="Detalhes do seu plano atual"
       >
         {user ? (
-            <>
-                <p className="text-gray-700 text-sm">
-                <strong className="font-semibold text-gray-900 text-sm">Plano:</strong> {user.plan || "Não informado"}
-                </p>
-                <p className="text-gray-700 text-sm">
-                <strong className="font-semibold text-gray-900 text-sm">Tokens disponíveis:</strong> {user.tokens_available ?? 0}
-                </p>
-                <p className="text-gray-700 text-sm">
-                <strong className="font-semibold text-gray-900 text-sm">Tokens usados:</strong> {user.tokens_used ?? 0}
-                </p>
-            </>
-            ) : (
-            <p>Carregando...</p>
-            )}
+          <>
+            <p className="text-gray-700 text-sm">
+              <strong className="font-semibold text-gray-900 text-sm">
+                Plano:
+              </strong>{" "}
+              {user.plan?.name || "Não informado"}
+            </p>
+            {Array.isArray(user.plan?.features) &&
+              user.plan.features.length > 0 &&
+              renderFeatures(user.plan.features)}
+          </>
+        ) : (
+          <p>Carregando...</p>
+        )}
       </SettingsModal>
 
       {/* Modal upgrade */}
@@ -109,12 +140,16 @@ export default function Subscription() {
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
         title="Plano Premium"
-        description="O plano Premium oferece 1000 tokens adicionais e suporte prioritário."
+        description="O plano Premium oferece recursos adicionais e suporte prioritário."
       >
         <p className={styles.upgradeText}>
-          Com o plano Premium você terá acesso a mais tokens, funcionalidades exclusivas e suporte dedicado.
+          Com o plano Premium você terá acesso a funcionalidades exclusivas e suporte dedicado.
         </p>
-        <button disabled className={styles.upgradeBtn} title="Funcionalidade ainda não implementada">
+        <button
+          disabled
+          className={styles.upgradeBtn}
+          title="Funcionalidade ainda não implementada"
+        >
           Adquirir Plano
         </button>
       </SettingsModal>

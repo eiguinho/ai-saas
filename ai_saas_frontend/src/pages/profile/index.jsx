@@ -84,7 +84,7 @@ export default function Profile() {
           >
             <CreditCard size={28} className={styles.iconSubscription} />
             <h2 className={styles.cardTitle}>Assinatura</h2>
-            <p className={styles.cardDescription}>Plano atual e pagamentos</p>
+            <p className={styles.cardDescription}>Plano atual</p>
           </Link>
 
           <Link

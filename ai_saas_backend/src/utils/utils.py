@@ -1,5 +1,5 @@
 from extensions import redis_client, db
-from models import User, Plan
+from models import User, Plan, Feature, PlanFeature
 
 from flask_jwt_extended.exceptions import RevokedTokenError
 import redis
@@ -16,14 +16,45 @@ def check_if_token_revoked(jwt_header, jwt_payload):
     return token_in_redis is not None
 
 def create_default_plans():
-    free = Plan.query.filter_by(name="Free").first()
-    premium = Plan.query.filter_by(name="Premium").first()
+    # Recursos disponíveis
+    features = {
+        "generate_text": "Geração com todos os modelos",
+        "attach_files": "Anexar arquivos",
+        "limit_chats": "Limite de chats",
+        "limit_messages": "Limite de mensagens por chat",
+        "customization": "Personalização das respostas (temperatura e max tokens)",
+        "generate_image": "Geração de imagem",
+        "generate_video": "Geração de vídeo",
+    }
 
-    if not free:
-        free = Plan(name="Free", price=0.0, tokens_available=0)
-        db.session.add(free)
-    if not premium:
-        premium = Plan(name="Premium", price=29.90, tokens_available=1000)
-        db.session.add(premium)
+    feature_objs = {}
+    for key, desc in features.items():
+        f = Feature.query.filter_by(key=key).first()
+        if not f:
+            f = Feature(key=key, description=desc)
+            db.session.add(f)
+            db.session.flush()
+        feature_objs[key] = f
+
+    # Planos
+    plan_names = ["Básico", "Pro", "Premium"]
+
+    for name in plan_names:
+        plan = Plan.query.filter_by(name=name).first()
+        if not plan:
+            plan = Plan(name=name)
+            db.session.add(plan)
+            db.session.flush()
+
+        for key, f in feature_objs.items():
+            existing = PlanFeature.query.filter_by(plan_id=plan.id, feature_id=f.id).first()
+            if not existing:
+                # Definir valores por plano
+                if plan.name == "Básico":
+                    value = "false" if key == "generate_text" else "true"
+                else:
+                    value = "true"
+                pf = PlanFeature(plan_id=plan.id, feature_id=f.id, value=value)
+                db.session.add(pf)
 
     db.session.commit()

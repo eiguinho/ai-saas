@@ -90,15 +90,8 @@ export default function Sidebar({
             <p className="text-sm text-left text-white/60 py-1">
               Plano:{" "}
               <strong className="text-white/70">
-                {user?.plan || "Básico"}
+                {user.plan?.name || "Inicial"}
               </strong>
-            </p>
-            <p className="text-xs text-left text-blue-200/80">
-              {user
-                ? `${user?.tokens_available ?? 0}/${
-                    user.tokensLimit || 1000
-                  } tokens usados`
-                : "0/1000 tokens usados"}
             </p>
           </>
         )}

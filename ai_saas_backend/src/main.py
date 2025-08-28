@@ -22,11 +22,13 @@ CORS(
 )
 
 # Caminho do banco SQLite
-basedir = os.path.abspath(os.path.dirname(__file__))
-db_path = os.path.join(basedir, "app.db")
+#basedir = os.path.abspath(os.path.dirname(__file__))
+#db_path = os.path.join(basedir, "app.db")
 
 # Configuração do banco
-app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+#app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.secret_key = os.getenv("SECRET_KEY")
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")

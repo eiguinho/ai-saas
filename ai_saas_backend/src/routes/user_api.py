@@ -114,15 +114,29 @@ def get_current_user():
     if not user:
         return jsonify({"error": "Usuário não encontrado"}), 404
 
+    # Serialização segura para frontend
+    plan_data = None
+    if user.plan:
+        plan_data = {
+            "id": user.plan.id,
+            "name": user.plan.name,
+            "features": [
+                {
+                    "key": pf.feature.key if pf.feature else "",
+                    "description": pf.feature.description if pf.feature else "",
+                    "value": pf.value
+                }
+                for pf in user.plan.features
+            ]
+        }
+
     return jsonify({
         "id": user.id,
         "full_name": user.full_name,
         "username": user.username,
         "email": user.email,
         "role": user.role,
-        "plan": user.plan.name if user.plan else None,
-        "tokens_available": user.plan.tokens_available if user.plan else 0,
-        #"payment_method": user.payment_method,
+        "plan": plan_data,
         "perfil_photo": user.perfil_photo,
         "is_active": user.is_active,
         "created_at": user.created_at.isoformat(),

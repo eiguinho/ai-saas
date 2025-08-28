@@ -72,7 +72,7 @@ export default function UserDetailsModal({ user, onClose, onUpdate }) {
         username,
         email,
         is_active: isActive,
-        plan: plans.find((p) => p.id === plan) || user.plan,
+        plan: plans.find((p) => p.id === plan) || user.plan?.id,
       };
       onUpdate(updatedUser);
 

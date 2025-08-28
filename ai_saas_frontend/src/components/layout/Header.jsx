@@ -226,7 +226,6 @@ export default function Header() {
               <li><Link to="/profile" className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 transition" onClick={() => setMenuOpen(false)}><User className="w-4 h-4 text-gray-600" />Perfil</Link></li>
               <li><Link to="/settings" className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 transition" onClick={() => setMenuOpen(false)}><Settings className="w-4 h-4 text-gray-600" />Configurações</Link></li>
               <li><Link to="/plans" className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 transition" onClick={() => setMenuOpen(false)}><CreditCard className="w-4 h-4 text-gray-600" />Planos e Assinaturas</Link></li>
-              <li className="px-4 py-2 text-gray-700">Tokens: <span className="font-semibold">{user?.tokens_available ?? 0}</span></li>
               <li><Link to="/help" className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 transition" onClick={() => setMenuOpen(false)}><HelpCircle className="w-4 h-4 text-gray-600" />Ajuda</Link></li>
               <li><button onClick={() => { logout(); setMenuOpen(false) }} className="w-full text-left flex items-center gap-2 px-4 py-2 hover:bg-red-100 text-red-600 transition font-semibold" type="button"><LogOut className="w-4 h-4" />Sair</button></li>
             </ul>

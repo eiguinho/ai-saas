@@ -65,7 +65,7 @@ def create_user():
     hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
 
     # Buscar plano Free
-    free_plan = Plan.query.filter_by(name="Premium").first()
+    free_plan = Plan.query.filter_by(name="Inicial").first()
     if not free_plan:
         return jsonify({"error": "Plano Free não encontrado"}), 500
 
@@ -108,6 +108,17 @@ def login():
             additional_claims={"role": user.role},
             expires_delta=timedelta(hours=2)
         )
+
+        # Extrair features corretamente
+        features_list = []
+        if user.plan:
+            for pf in user.plan.features:
+                features_list.append({
+                    "key": pf.feature.key,
+                    "description": pf.feature.description,
+                    "value": pf.value
+                })
+
         resp = make_response(jsonify({
             "message": "Login bem-sucedido",
             "access_token": access_token,
@@ -118,14 +129,14 @@ def login():
                 "email": user.email,
                 "role": user.role,
                 "plan": user.plan.name if user.plan else None,
-                "tokens_available": user.plan.tokens_available if user.plan else 0,
-                #"payment_method": user.payment_method,
+                "features": features_list,
                 "perfil_photo": user.perfil_photo,
                 "is_active": user.is_active,
                 "created_at": user.created_at.isoformat(),
                 "updated_at": user.updated_at.isoformat()
             }
         }))
+
         resp.set_cookie(
             "access_token_cookie",
             access_token,
@@ -137,6 +148,7 @@ def login():
         return resp
     else:
         return jsonify({"error": "Credenciais inválidas"}), 401
+
 
 
 # Logout
@@ -186,7 +198,7 @@ def request_password_reset():
     token = secrets.token_urlsafe(64)
     redis_client.setex(f"reset_token:{token}", timedelta(hours=1), user.id)
 
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:80")
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000").rstrip("/")
     reset_link = f"{frontend_url}/login/reset-password/{token}"
     send_reset_password_email(user.email, reset_link)
 

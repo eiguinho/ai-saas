@@ -1,26 +1,36 @@
 import React, { useRef, useEffect } from "react";
 import { Send, Paperclip, X, Square } from "lucide-react";
 import { toast } from "react-toastify";
+import { useAuth } from "../../../../context/AuthContext"; // hook do contexto
 
 const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "application/pdf"];
 
-export default function ChatInput({ 
-  input, 
-  setInput, 
-  handleSend, 
-  handleStop, 
-  loading, 
-  files, 
-  setFiles, 
-  attachmentsAllowed 
+export default function ChatInput({
+  input,
+  setInput,
+  handleSend,
+  handleStop,
+  loading,
+  files,
+  setFiles
 }) {
+  const { user } = useAuth(); // pega o usuário direto do AuthContext
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
-  const maxHeight = 160; // altura máxima em pixels
+  const maxHeight = 160; // altura máxima do textarea
+
+  // Mapeia as features do plano para key → boolean
+  const featuresMap = (user?.plan?.features || []).reduce((acc, pf) => {
+    acc[pf.key] = pf.value === "true";
+    return acc;
+  }, {});
+
+  // Verifica permissão de anexar arquivos
+  const attachmentsAllowed = !!featuresMap["attach_files"];
 
   const handleFileChange = (e) => {
     if (!attachmentsAllowed) {
-      toast.warning("Este modelo não suporta anexos.");
+      toast.warning("Seu plano atual não permite anexar arquivos.");
       return;
     }
     const newFiles = Array.from(e.target.files);
@@ -44,6 +54,7 @@ export default function ChatInput({
 
   return (
     <div className="flex flex-col gap-2 w-full">
+      {/* Lista de arquivos anexados */}
       {files.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {files.map((file, i) => (
@@ -64,12 +75,14 @@ export default function ChatInput({
         </div>
       )}
 
+      {/* Área de input */}
       <div className="flex items-end gap-3">
+        {/* Botão de anexos */}
         <button
           type="button"
           onClick={() => attachmentsAllowed && fileInputRef.current.click()}
           className={`p-3 rounded-xl hover:bg-gray-100 transition shadow ${!attachmentsAllowed ? "opacity-50 cursor-not-allowed" : ""}`}
-          title={attachmentsAllowed ? "Anexar arquivo" : "Este modelo não suporta anexos"}
+          title={attachmentsAllowed ? "Anexar arquivo" : "Melhore seu plano para utilizar este recurso!"}
         >
           <Paperclip className="w-6 h-6 text-gray-600" />
         </button>
@@ -81,8 +94,10 @@ export default function ChatInput({
           multiple
           hidden
           accept=".jpeg,.jpg,.png,.gif,.pdf"
+          disabled={!attachmentsAllowed} // desabilita input se não permitido
         />
 
+        {/* Textarea */}
         <textarea
           ref={textareaRef}
           placeholder="Digite sua mensagem..."
@@ -101,6 +116,7 @@ export default function ChatInput({
           style={{ maxHeight: maxHeight + "px" }}
         />
 
+        {/* Botão de enviar / parar */}
         {loading ? (
           <button
             onClick={handleStop}

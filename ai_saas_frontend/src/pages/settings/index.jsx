@@ -139,10 +139,7 @@ export default function Settings() {
           {user ? (
             <>
               <p className="text-gray-700 text-sm">
-                <strong className="font-semibold text-gray-900 text-sm">Plano atual:</strong> {user.plan || "Não informado"}
-              </p>
-              <p className="text-gray-700 text-sm mt-2">
-                <strong className="font-semibold text-gray-900 text-sm">Tokens usados:</strong> {user.tokens_used ?? 0}
+                <strong className="font-semibold text-gray-900 text-sm">Plano atual:</strong> {user.plan?.name || "Não informado"}
               </p>
               <div className="flex mt-8">
                 <Link

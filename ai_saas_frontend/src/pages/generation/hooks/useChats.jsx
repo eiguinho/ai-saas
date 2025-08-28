@@ -13,7 +13,6 @@ export default function useChats() {
       try {
         const res = await fetch(chatRoutes.list, { credentials: "include" });
         const data = await res.json();
-        console.log("[useChats] Chats fetched:", data);
         setChats(data || []);
       } catch {
         toast.error("Erro ao carregar chats");
@@ -24,16 +23,13 @@ export default function useChats() {
 
   const loadChat = async (id) => {
     try {
-      console.log("[useChats] Loading chat:", id);
       setChatVisible(false);
       setTimeout(async () => {
         setChatId(id);
-        console.log("[useChats] ChatId set to:", id);
 
         const res = await fetch(chatRoutes.messages(id), { credentials: "include" });
         const data = await res.json();
         setMessages(data.messages || []);
-        console.log("[useChats] Messages loaded for chat:", id, data.messages || []);
         setChatVisible(true);
       }, 200);
     } catch {
@@ -51,10 +47,8 @@ export default function useChats() {
   };
 
   const updateChatList = (chatData, action, newTitle) => {
-  console.log("[useChats] updateChatList called:", chatData.id, action, newTitle);
 
   setChats((prev) => {
-    console.log("[useChats] Previous chats:", prev);
 
     let updated;
 
@@ -66,7 +60,6 @@ export default function useChats() {
 
       setChatId(chatData.id);
       loadChat(chatData.id);
-      console.log("[useChats] Updated chats (after add):", updated);
       return updated;
     }
 
@@ -80,8 +73,6 @@ export default function useChats() {
         return { ...ch };
       })
       .filter((ch) => !(action === "delete" && ch.id === chatData.id));
-
-    console.log("[useChats] Updated chats (after action):", updated);
 
     if (action === "delete" && chatData.id === chatId) {
   setChatId(null);
