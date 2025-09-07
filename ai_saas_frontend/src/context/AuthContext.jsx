@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
 
 
   function loginSuccess(authData) {
-    setUser(authData.user);
+    setUser(authData.user ?? authData);
   }
 
   function logout() {
@@ -56,6 +56,7 @@ export function AuthProvider({ children }) {
         loading,
         securityVerified,
         setSecurityVerified,
+        setUser,
       }}
     >
       {children}

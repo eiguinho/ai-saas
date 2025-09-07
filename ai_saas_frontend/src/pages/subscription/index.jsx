@@ -2,7 +2,10 @@ import { useState, useEffect } from "react";
 import Layout from "../../components/layout/Layout";
 import SettingsModal from "../../components/modals/SettingsModal";
 import { UserCheck, TrendingUp, CheckCircle, XCircle } from "lucide-react";
+import { toast } from "react-toastify";
 import styles from "./subscription.module.css";
+import { apiFetch } from "../../services/apiService";
+import { userRoutes } from "../../services/apiRoutes";
 
 export default function Subscription() {
   const [user, setUser] = useState(null);
@@ -10,11 +13,15 @@ export default function Subscription() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   useEffect(() => {
-    fetch("/api/users/me", { credentials: "include" })
-      .then((res) => res.json())
-      .then((data) => {
+    const loadUser = async () => {
+      try {
+        const data = await apiFetch(userRoutes.getCurrentUser());
         setUser(data);
-      });
+      } catch {
+        toast.error("Erro ao carregar dados do usuário");
+      }
+    };
+    loadUser();
   }, []);
 
   const renderFeatures = (features) => {

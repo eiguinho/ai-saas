@@ -10,10 +10,10 @@ export const TEXT_MODELS = [
   { value: "gpt-4.1", label: "GPT-4.1", attachments: true, isGpt5: true },
   { value: "gpt-5", label: "GPT-5", attachments: true, isGpt5: true },
   { value: "gpt-5-mini", label: "GPT-5 Mini", attachments: true, isGpt5: true },
-  { value: "deepseek/deepseek-chat-v3-0324:free", label: "DeepSeek Chat V3", attachments: false, isGpt5: false },
   { value: "deepseek/deepseek-r1-0528:free", label: "DeepSeek R1 0528", attachments: false, isGpt5: false },
-  { value: "tngtech/deepseek-r1t2-chimera:free", label: "DeepSeek R1T2 Chimera", attachments: false, isGpt5: false },
-  { value: "google/gemini-2.0-flash-exp:free", label: "Gemini 2.0 Flash Exp", attachments: false, isGpt5: false },
+  { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro", attachments: true, isGpt5: true },
+  { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash", attachments: true, isGpt5: true },
+  { value: "gemini-2.5-flash-lite", label: "Gemini 2.5 Flash Lite", attachments: true, isGpt5: false },
 ];
 
 export const IMAGE_MODELS = [

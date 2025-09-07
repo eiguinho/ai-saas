@@ -7,12 +7,14 @@ import styles from "../profile.module.css";
 import { useAuth } from "../../../context/AuthContext";
 import { emailRoutes, userRoutes, notificationRoutes } from "../../../services/apiRoutes";
 import { useNotifications } from "../../../context/NotificationContext";
+import { apiFetch } from "../../../services/apiService";
 import SecurityModal from "../../../components/modals/SecurityModal";
 
 export default function EditEmail() {
   const { user, loginSuccess } = useAuth();
   const navigate = useNavigate();
   const { fetchNotifications } = useNotifications();
+
   const [email, setEmail] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
@@ -30,19 +32,11 @@ export default function EditEmail() {
       return;
     }
     try {
-      const res = await fetch(emailRoutes.requestEmailCode, {
+      await apiFetch(emailRoutes.requestEmailCode, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      const rawText = await res.text();
-      let data;
-      try {
-        data = JSON.parse(rawText);
-      } catch (e) {
-        data = { error: "Resposta inválida do servidor" };
-      }
-      if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
       toast.success("Código enviado para o novo email.");
       setModalVisible(true);
     } catch (err) {
@@ -56,19 +50,11 @@ export default function EditEmail() {
     setVerifying(true);
     setError("");
     try {
-      const res = await fetch(emailRoutes.verifyEmailCode, {
+      await apiFetch(emailRoutes.verifyEmailCode, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, code }),
       });
-      const rawText = await res.text();
-      let data;
-      try {
-        data = JSON.parse(rawText);
-      } catch (e) {
-        data = { error: "Resposta inválida do servidor" };
-      }
-      if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
       toast.success("Email verificado com sucesso!");
       setEmailVerified(true);
       setModalVisible(false);
@@ -82,29 +68,24 @@ export default function EditEmail() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await fetch(userRoutes.updateUser(user.id), {
+      await apiFetch(userRoutes.updateUser(user.id), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ email }),
       });
-      const rawText = await res.text();
-      const data = JSON.parse(rawText);
-      if (!res.ok) throw new Error(data.error);
       toast.success("Email atualizado com sucesso!");
-      await fetch(notificationRoutes.create, {
+
+      // Criar notificação
+      await apiFetch(notificationRoutes.create, {
         method: "POST",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: `Seu email foi alterado!`,
-          link: "/profile",
-        }),
+        body: JSON.stringify({ message: "Seu email foi alterado!", link: "/profile" }),
       });
+
       fetchNotifications();
-      const updatedUser = await fetch(userRoutes.getCurrentUser(), {
-        credentials: "include",
-      }).then((res) => res.json());
+
+      // Atualizar dados do usuário
+      const updatedUser = await apiFetch(userRoutes.getCurrentUser());
       loginSuccess({ user: updatedUser });
       navigate("/profile/security");
     } catch (err) {

@@ -18,8 +18,9 @@ export const emailRoutes = {
 };
 
 export const profileRoutes = {
-  updatePhoto: (userId) => `${API_BASE}/users/${userId}/perfil-photo`, // PUT → atualiza foto (JWT)
-  deletePhoto: (userId) => `${API_BASE}/users/${userId}/perfil-photo`, // DELETE → remove foto (JWT)
+  updatePhoto: (userId) => `${API_BASE}/users/${userId}/perfil-photo`, // PUT
+  deletePhoto: (userId) => `${API_BASE}/users/${userId}/perfil-photo`, // DELETE
+  getPhoto: (userId) => `${API_BASE}/users/${userId}/perfil-photo`,    // GET
 };
 
 export const userRoutes = {
@@ -65,7 +66,7 @@ export const notificationRoutes = {
 };
 
 export const plansRoutes = {
-  list: `${API_BASE}/plans`,   // GET → lista todos os planos
+  list: `${API_BASE}/plans/`,   // GET → lista todos os planos
 }; 
 
 export const aiRoutes = {

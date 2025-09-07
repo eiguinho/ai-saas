@@ -13,11 +13,11 @@ export default defineConfig({
   port: 3000,  // porta do front
   strictPort: true,
   proxy: {
-    '/api': {
-      target: 'http://127.0.0.1:8000',
-      changeOrigin: true,
-      secure: false,
-    },
+      "/api": {
+        target: "https://api.artificiall.ai",
+        changeOrigin: true,
+        secure: true, // se o backend usa https
+      },
   },
 }
 })

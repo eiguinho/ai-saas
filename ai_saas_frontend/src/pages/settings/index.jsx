@@ -6,7 +6,8 @@ import SettingsModal from "../../components/modals/SettingsModal";
 import SecurityModal from "../../components/modals/SecurityModal";
 import { useProjects } from "../../hooks/useProjects";
 import { useContents } from "../../hooks/useContents";
-import { userRoutes } from "../../services/apiRoutes";
+import { userRoutes, emailRoutes } from "../../services/apiRoutes";
+import { apiFetch } from "../../services/apiService";
 import { toast } from "react-toastify";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -23,20 +24,21 @@ export default function Settings() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(userRoutes.getCurrentUser(), { credentials: "include" })
-      .then((res) => res.json())
-      .then((data) => setUser(data))
-      .catch(() => toast.error("Erro ao carregar dados do usuário"));
+    const loadUser = async () => {
+      try {
+        const data = await apiFetch(userRoutes.getCurrentUser());
+        setUser(data);
+      } catch {
+        toast.error("Erro ao carregar dados do usuário");
+      }
+    };
+    loadUser();
   }, []);
 
   const requestSecurityCode = async () => {
     setErrorMessage("");
     try {
-      const res = await fetch("/api/email/send-security-code", {
-        method: "POST",
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error();
+      await apiFetch(emailRoutes.sendSecurityCode, { method: "POST" });
       toast.success("Código enviado para seu e-mail.");
     } catch {
       setErrorMessage("Erro ao enviar o código. Tente novamente.");
@@ -67,11 +69,7 @@ export default function Settings() {
   const handleDeleteAccount = async () => {
     setLoading(true);
     try {
-      const res = await fetch(userRoutes.deleteUser(user?.id), {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error();
+      await apiFetch(userRoutes.deleteUser(user?.id), { method: "DELETE" });
       toast.success("Conta deletada com sucesso!");
       window.location.href = "/";
     } catch {

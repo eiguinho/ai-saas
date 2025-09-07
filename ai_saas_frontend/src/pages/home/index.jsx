@@ -8,6 +8,8 @@ import { useProjects } from "../../hooks/useProjects";
 import { useContents } from "../../hooks/useContents";
 import { toast } from "react-toastify";
 import NewProjectModal from "../../components/modals/NewProjectModal";
+import { apiFetch } from "../../services/apiService";
+import { projectRoutes } from "../../services/apiRoutes";
 
 export default function Home() {
   const { user } = useAuth();
@@ -19,21 +21,21 @@ export default function Home() {
   const [showProjectModal, setShowProjectModal] = useState(false);
 
   const createProject = async ({ name, description }) => {
-    const res = await fetch("/api/projects/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ name, description }),
-    });
+    try {
+      const data = await apiFetch(projectRoutes.create, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, description }),
+      });
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Erro ao criar projeto");
+      const newProjectId = data.id || data.project?.id;
+      if (!newProjectId) throw new Error("ID do projeto não encontrado");
 
-    const newProjectId = data.id || data.project?.id;
-    if (!newProjectId) throw new Error("ID do projeto não encontrado");
-
-    toast.success("Projeto criado com sucesso!");
-    navigate(`/workspace/projects/${newProjectId}/modify-content`, { replace: true });
+      toast.success("Projeto criado com sucesso!");
+      navigate(`/workspace/projects/${newProjectId}/modify-content`, { replace: true });
+    } catch (err) {
+      toast.error(err.message || "Erro ao criar projeto");
+    }
   };
 
   return (
@@ -57,11 +59,11 @@ export default function Home() {
         <div className={styles.panelGrid}>
           <div className={styles.statCard}>
             <div className={styles.statHeader}>
-              <p className={styles.blockTitle}>Tokens Usados</p>
+              <p className={styles.blockTitle}>Agentes Criados</p>
             </div>
             <p className="text-2xl font-bold">{user?.tokens_available ?? 0}</p>
             <p className={`${styles.statSubtext} text-xs`}>
-              de {user?.tokensLimit || 1000} tokens disponíveis
+              Funcionalidade Futura!
             </p>
           </div>
 

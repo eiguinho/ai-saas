@@ -33,7 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV 'C:\Users\igorv\OneDrive\Documentos\ai SaaS\ai_saas_backend\venv'
+set -gx VIRTUAL_ENV 'C:\Users\Administrator\Documents\ai_saas\ai-saas\ai_saas_backend\venv'
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/"Scripts $PATH

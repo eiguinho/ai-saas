@@ -6,6 +6,7 @@ import Layout from "../../components/layout/Layout";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "react-toastify";
 import { emailRoutes } from "../../services/apiRoutes";
+import { apiFetch } from "../../services/apiService";
 import SecurityModal from "../../components/modals/SecurityModal";
 
 export default function Profile() {
@@ -16,12 +17,9 @@ export default function Profile() {
   const { securityVerified, setSecurityVerified } = useAuth();
 
   const requestCode = async () => {
+    setErrorMessage("");
     try {
-      const res = await fetch(emailRoutes.sendSecurityCode, {
-        method: "POST",
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error();
+      await apiFetch(emailRoutes.sendSecurityCode, { method: "POST" });
       toast.success("Código enviado para seu e-mail.");
     } catch {
       setErrorMessage("Erro ao enviar o código. Tente novamente.");
@@ -42,14 +40,11 @@ export default function Profile() {
     setLoading(true);
     setErrorMessage("");
     try {
-      const res = await fetch(emailRoutes.verifySecurityCode, {
+      await apiFetch(emailRoutes.verifySecurityCode, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ code }),
       });
-
-      if (!res.ok) throw new Error("Código inválido.");
       toast.success("Código verificado com sucesso!");
       setShowModal(false);
       setSecurityVerified(true);

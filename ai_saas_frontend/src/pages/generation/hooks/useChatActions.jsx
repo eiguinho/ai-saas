@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { toast } from "react-toastify";
 import { aiRoutes } from "../../../services/apiRoutes";
+import { apiFetch } from "../../../services/apiService"; // ← import do service
 
 export default function useChatActions({ chatId, setChatId, messages, setMessages, updateChatList }) {
   const [loading, setLoading] = useState(false);
@@ -32,7 +33,7 @@ export default function useChatActions({ chatId, setChatId, messages, setMessage
     setController(abortController);
 
     try {
-      let body, headers = { Authorization: "Bearer ..." };
+      let body;
 
       if (userFiles.length > 0) {
         body = new FormData();
@@ -42,7 +43,6 @@ export default function useChatActions({ chatId, setChatId, messages, setMessage
         body.append("temperature", isTemperatureLocked ? 1 : temperature);
         body.append("max_tokens", maxTokens);
         userFiles.forEach((f) => body.append("files", f));
-        headers = {};
       } else {
         body = JSON.stringify({
           input: userInput,
@@ -51,18 +51,15 @@ export default function useChatActions({ chatId, setChatId, messages, setMessage
           temperature: isTemperatureLocked ? 1 : temperature,
           max_tokens: maxTokens,
         });
-        headers["Content-Type"] = "application/json";
       }
 
-      const aiRes = await fetch(aiRoutes.generateText, {
+      const aiData = await apiFetch(aiRoutes.generateText, {
         method: "POST",
-        credentials: "include",
-        headers,
         body,
+        headers: userFiles.length === 0 ? { "Content-Type": "application/json" } : {},
         signal: abortController.signal,
       });
 
-      const aiData = await aiRes.json();
       if (aiData.error) throw new Error(aiData.error);
 
       setChatId(aiData.chat_id);

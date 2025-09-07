@@ -2,10 +2,9 @@ import { Bell, User, Search, Settings, LogOut, CreditCard, HelpCircle, Folder, F
 import { useAuth } from "../../context/AuthContext"
 import { useState, useRef, useEffect, useCallback } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { projectRoutes, generatedContentRoutes, notificationRoutes } from "../../services/apiRoutes"
+import { projectRoutes, generatedContentRoutes, notificationRoutes, profileRoutes } from "../../services/apiRoutes"
 import { useNotifications } from "../../context/NotificationContext"
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
+import { apiFetch } from "../../services/apiService";
 
 export default function Header() {
   const { user, logout } = useAuth()
@@ -19,9 +18,31 @@ export default function Header() {
   const menuRef = useRef(null)
   const searchRef = useRef(null)
 
-  const perfilPhoto = user?.perfil_photo
-  let perfilPhotoFilename = null
-  if (perfilPhoto && typeof perfilPhoto === "string") perfilPhotoFilename = perfilPhoto.replace(/\\/g, "/").split("/").pop()
+  const [perfilPhotoUrl, setPerfilPhotoUrl] = useState("")
+
+  // Buscar foto protegida do usuário
+  useEffect(() => {
+    const fetchPhoto = async () => {
+      if (!user?.perfil_photo) {
+        setPerfilPhotoUrl("") // fallback para ícone
+        return
+      }
+      try {
+        const res = await fetch(profileRoutes.getPhoto(user.id), {
+          credentials: "include",
+        })
+        if (!res.ok) throw new Error("Erro ao carregar foto")
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        setPerfilPhotoUrl(url)
+      } catch (err) {
+        console.error("Erro ao buscar foto do usuário:", err)
+        setPerfilPhotoUrl("") // fallback
+      }
+    }
+
+    fetchPhoto()
+  }, [user])
 
   const debounce = (fn, delay) => {
     let timeout
@@ -31,16 +52,10 @@ export default function Header() {
     }
   }
 
-  const truncate = (str, length = 50) => {
-    if (!str) return ""
-    return str.length > length ? str.substring(0, length) + "..." : str
-  }
+  const truncate = (str, length = 50) => str && str.length > length ? str.substring(0, length) + "..." : str || ""
 
   const fetchSearchResults = useCallback(debounce(async (query) => {
-    if (!query.trim()) {
-      setSearchResults([])
-      return
-    }
+    if (!query.trim()) return setSearchResults([])
     try {
       const [projRes, contRes] = await Promise.all([
         fetch(`${projectRoutes.list}?q=${query}`, { credentials: "include" }).then(r => r.json()),
@@ -48,7 +63,7 @@ export default function Header() {
       ])
       const formatted = [
         ...(projRes || []).map(p => ({ type: "project", id: p.id, title: p.name || p.title, created_at: p.created_at })),
-        ...(contRes || []).map(c => ({ type: "content", id: c.id, title: truncate(c.prompt || "Conteúdo gerado"), created_at: c.created_at }))
+        ...(contRes || []).map(c => ({ type: "content", id: c.id, title: truncate(c.prompt), created_at: c.created_at }))
       ]
       setSearchResults(formatted)
       setSearchOpen(true)
@@ -67,54 +82,46 @@ export default function Header() {
     setSearchQuery("")
     setSearchResults([])
     setSearchOpen(false)
-    if (item.type === "project") {
-      navigate(`/workspace/projects/${item.id}/modify-content`)
-    } else if (item.type === "content") {
-      navigate(`/workspace/generated-contents`)
-      // Futuro: abrir modal específico
-    }
+    if (item.type === "project") navigate(`/workspace/projects/${item.id}/modify-content`)
+    else if (item.type === "content") navigate(`/workspace/generated-contents`)
   }
-
 
   const markNotificationAsRead = async (notifId) => {
     try {
-      await fetch(notificationRoutes.markSingle(notifId), { method: "PATCH", credentials: "include" })
+      await apiFetch(notificationRoutes.markSingle(notifId), { method: "PATCH" });
     } catch (err) {
-      console.error(`Erro ao marcar notificação ${notifId} como lida:`, err)
+      console.error(err);
     }
-  }
+  };
 
   const handleNotificationClick = async (notif) => {
     if (!notif.is_read) {
-      setNotifications(prev => prev.map(n => (n.id === notif.id ? { ...n, is_read: true } : n)))
-      setUnreadCount(prev => Math.max(prev - 1, 0))
-      await markNotificationAsRead(notif.id)
+      setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, is_read: true } : n));
+      setUnreadCount(prev => Math.max(prev - 1, 0));
+      await markNotificationAsRead(notif.id);
     }
-    if (notif.link) navigate(notif.link)
-  }
+    if (notif.link) navigate(notif.link);
+  };
 
   const handleDeleteNotification = async (notifId) => {
-    const notifToDelete = notifications.find(n => n.id === notifId)
-    setNotifications(prev => prev.filter(n => n.id !== notifId))
-    if (notifToDelete && !notifToDelete.is_read) setUnreadCount(prev => Math.max(prev - 1, 0))
+    setNotifications(prev => prev.filter(n => n.id !== notifId));
     try {
-      const res = await fetch(notificationRoutes.delete(notifId), { method: "DELETE", credentials: "include" })
-      if (!res.ok) fetchNotifications()
-      else fetchNotifications()
+      await apiFetch(notificationRoutes.delete(notifId), { method: "DELETE" });
+      fetchNotifications();
     } catch {
-      fetchNotifications()
+      fetchNotifications();
     }
-  }
+  };
 
   const markAllAsRead = async () => {
     try {
-      await fetch(notificationRoutes.markRead, { method: "PATCH", credentials: "include" })
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
-      setUnreadCount(0)
+      await apiFetch(notificationRoutes.markRead, { method: "PATCH" });
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+      setUnreadCount(0);
     } catch (err) {
-      console.error("Erro ao marcar todas notificações como lidas:", err)
+      console.error(err);
     }
-  }
+  };
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -127,18 +134,12 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  useEffect(() => {
-    fetchNotifications()
-  }, [fetchNotifications])
+  useEffect(() => { fetchNotifications() }, [fetchNotifications])
 
-  const handleOpenNotif = () => {
-    setNotifOpen(prev => !prev)
-    setMenuOpen(false)
-  }
+  const handleOpenNotif = () => { setNotifOpen(prev => !prev); setMenuOpen(false) }
 
   function NotificationItem({ notif }) {
     const [confirmDelete, setConfirmDelete] = useState(false)
-
     return (
       <li className={`px-4 py-3 transition flex flex-col items-start space-y-1 hover:bg-gray-100 ${notif.is_read ? "text-gray-400 bg-white" : "text-gray-800 bg-gray-50"}`}>
         {!confirmDelete ? (
@@ -217,7 +218,7 @@ export default function Header() {
         </div>
 
         <button onClick={() => { setMenuOpen(!menuOpen); setNotifOpen(false) }} className="w-8 h-8 rounded-full overflow-hidden border border-gray-300 hover:shadow-md transition focus:outline-none" aria-haspopup="true" aria-expanded={menuOpen} aria-label="Abrir menu do usuário" type="button">
-          {perfilPhotoFilename ? <img src={`${API_BASE_URL}/static/uploads/${perfilPhotoFilename}`} alt="Foto de perfil" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-gray-100"><User className="w-4 h-4 text-gray-500" /></div>}
+          {perfilPhotoUrl ? <img src={perfilPhotoUrl} alt="Foto de perfil" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-gray-100"><User className="w-4 h-4 text-gray-500" /></div>}
         </button>
 
         {menuOpen && (

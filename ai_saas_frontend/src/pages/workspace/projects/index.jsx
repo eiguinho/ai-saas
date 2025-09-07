@@ -11,6 +11,7 @@ import { projectRoutes } from "../../../services/apiRoutes";
 import FiltersPanel from "../components/FiltersPanel";
 import { formatDate, formatDateTime } from "../../../utils/dateUtils";
 import SortMenu from "../components/SortMenu";
+import { apiFetch } from "../../../services/apiService";
 
 export default function ProjectsList() {
   const {
@@ -36,12 +37,7 @@ export default function ProjectsList() {
   const handleDelete = async (id) => {
     if (!window.confirm("Tem certeza que deseja excluir este projeto?")) return;
     try {
-      const res = await fetch(projectRoutes.delete(id), {
-        method: "DELETE",
-        credentials: "include",
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao excluir projeto");
+      await apiFetch(projectRoutes.delete(id), { method: "DELETE" });
       toast.success("Projeto excluído com sucesso!");
       setProjects((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
@@ -56,17 +52,13 @@ export default function ProjectsList() {
     }
     setLoadingProject(true);
     setErrorProject("");
+
     try {
-      const res = await fetch("/api/projects/", {
+      await apiFetch(projectRoutes.create, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ name: projectName, description: projectDescription }),
       });
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || "Erro ao criar projeto");
-      }
       toast.success("Projeto criado com sucesso!");
       await loadProjects();
       setShowProjectModal(false);
@@ -78,6 +70,7 @@ export default function ProjectsList() {
       setLoadingProject(false);
     }
   };
+
 
   return (
     <Layout>

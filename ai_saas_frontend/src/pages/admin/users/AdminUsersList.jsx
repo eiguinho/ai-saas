@@ -3,6 +3,7 @@ import Layout from "../../../components/layout/Layout";
 import { Trash, Edit, Search, ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
 import { adminRoutes, userRoutes } from "../../../services/apiRoutes";
+import { apiFetch } from "../../../services/apiService";
 import useSelectionMode from "../../workspace/hooks/useSelectionMode";
 import SelectionToggleButton from "../../workspace/components/SelectionToggleButton";
 import SelectionToolbar from "../../workspace/components/SelectionToolbar";
@@ -17,14 +18,7 @@ export default function AdminUsersList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [modalUser, setModalUser] = useState(null);
 
-  const {
-    selectionMode,
-    selectedItems,
-    toggleSelectionMode,
-    toggleSelect,
-    clearSelection,
-  } = useSelectionMode();
-
+  const { selectionMode, selectedItems, toggleSelectionMode, toggleSelect, clearSelection } = useSelectionMode();
   const selectedIds = selectedItems.map((u) => u?.id);
 
   useEffect(() => {
@@ -33,9 +27,7 @@ export default function AdminUsersList() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch(adminRoutes.listUsers(), { credentials: "include" });
-      if (!res.ok) throw new Error();
-      const data = await res.json();
+      const data = await apiFetch(adminRoutes.listUsers());
       const safeData = data.map((u, i) => ({
         id: u.id ?? `missing-id-${i}`,
         full_name: u.full_name ?? "—",
@@ -46,7 +38,7 @@ export default function AdminUsersList() {
         role: u.role ?? "user",
       }));
       setUsers(safeData);
-    } catch (err) {
+    } catch {
       toast.error("Erro ao carregar usuários.");
     }
   };
@@ -54,11 +46,7 @@ export default function AdminUsersList() {
   const handleDeleteUser = async (id) => {
     if (!window.confirm("Deseja excluir este usuário?")) return;
     try {
-      const res = await fetch(userRoutes.deleteUser(id), {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error();
+      await apiFetch(userRoutes.deleteUser(id), { method: "DELETE" });
       setUsers(users.filter((u) => u.id !== id));
       toast.success("Usuário excluído.");
       fetchUsers();
@@ -71,11 +59,7 @@ export default function AdminUsersList() {
     if (selectedItems.length === 0) return;
     if (!window.confirm(`Deseja excluir ${selectedItems.length} usuário(s)?`)) return;
     try {
-      await Promise.all(
-        selectedIds.map((id) =>
-          fetch(userRoutes.deleteUser(id), { method: "DELETE", credentials: "include" })
-        )
-      );
+      await Promise.all(selectedIds.map((id) => apiFetch(userRoutes.deleteUser(id), { method: "DELETE" })));
       setUsers(users.filter((u) => !selectedIds.includes(u.id)));
       clearSelection();
       toast.success("Usuários excluídos.");
@@ -92,24 +76,19 @@ export default function AdminUsersList() {
 
   return (
     <Layout>
+      {/* Cabeçalho, busca e botão de seleção */}
       <div className={styles.returnLink}>
-              <button
-                onClick={() => navigate(-1)}
-                className="flex items-center text-gray-700 hover:text-black"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-              </button>
-              <nav className="flex items-center text-sm space-x-1">
-                <Link to="/admin" className="text-gray-700 hover:text-black">
-                  Painel Administrativo
-                </Link>
-                <span>/</span>
-                <span className="text-gray-500">Gerenciar Usuários</span>
-              </nav>
-            </div>
+        <button onClick={() => navigate(-1)} className="flex items-center text-gray-700 hover:text-black">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+        </button>
+        <nav className="flex items-center text-sm space-x-1">
+          <Link to="/admin" className="text-gray-700 hover:text-black">Painel Administrativo</Link>
+          <span>/</span>
+          <span className="text-gray-500">Gerenciar Usuários</span>
+        </nav>
+      </div>
 
       <h1 className="text-xl font-semibold mb-4">Gerenciar Usuários</h1>
-
       <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
         <div className="relative max-w-md w-full">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -136,7 +115,6 @@ export default function AdminUsersList() {
           {filteredUsers.map((user) => {
             const isSelected = selectedItems.some((u) => u?.id === user?.id);
             const bgClass = user.is_active ? "bg-white border-blue-400" : "bg-gray-50 border-gray-300";
-
             return (
               <div
                 key={user.id}
@@ -161,36 +139,18 @@ export default function AdminUsersList() {
                 )}
 
                 <div className="flex flex-col w-full">
-                  <p className="font-semibold text-black">
-                    {user.full_name ?? "—"} ({user.username ?? "—"})
-                  </p>
+                  <p className="font-semibold text-black">{user.full_name ?? "—"} ({user.username ?? "—"})</p>
                   <p className="text-gray-600 text-sm">{user.email ?? "—"}</p>
                   <p className="text-gray-600 text-sm">Plano: {user.plan?.name ?? "—"}</p>
-                  <p className="text-gray-600 text-sm">
-                    Status: {user.is_active ? "Ativo" : "Inativo"}
-                  </p>
+                  <p className="text-gray-600 text-sm">Status: {user.is_active ? "Ativo" : "Inativo"}</p>
                 </div>
 
                 {!selectionMode && (
                   <div className="flex gap-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setModalUser(user);
-                      }}
-                      className="text-blue-600 hover:text-blue-800"
-                      title="Editar usuário"
-                    >
+                    <button onClick={(e) => { e.stopPropagation(); setModalUser(user); }} className="text-blue-600 hover:text-blue-800" title="Editar usuário">
                       <Edit className="w-5 h-5" />
                     </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteUser(user.id);
-                      }}
-                      className="text-red-600 hover:text-red-800"
-                      title="Excluir usuário"
-                    >
+                    <button onClick={(e) => { e.stopPropagation(); handleDeleteUser(user.id); }} className="text-red-600 hover:text-red-800" title="Excluir usuário">
                       <Trash className="w-5 h-5" />
                     </button>
                   </div>
@@ -201,13 +161,7 @@ export default function AdminUsersList() {
         </div>
       )}
 
-      <SelectionToolbar
-        count={selectedItems.length}
-        confirmLabel="Excluir selecionados"
-        onConfirm={handleDeleteSelected}
-        confirmColor="red"
-        icon={<Trash className="w-4 h-4" />}
-      />
+      <SelectionToolbar count={selectedItems.length} confirmLabel="Excluir selecionados" onConfirm={handleDeleteSelected} confirmColor="red" icon={<Trash className="w-4 h-4" />} />
 
       {modalUser && (
         <UserDetailsModal

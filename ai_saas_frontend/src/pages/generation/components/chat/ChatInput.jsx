@@ -12,7 +12,8 @@ export default function ChatInput({
   handleStop,
   loading,
   files,
-  setFiles
+  setFiles,
+  attachmentsAllowed,
 }) {
   const { user } = useAuth(); // pega o usuário direto do AuthContext
   const fileInputRef = useRef(null);
@@ -26,10 +27,10 @@ export default function ChatInput({
   }, {});
 
   // Verifica permissão de anexar arquivos
-  const attachmentsAllowed = !!featuresMap["attach_files"];
+  const finalAttachmentsAllowed  = !!featuresMap["attach_files"] && attachmentsAllowed;
 
   const handleFileChange = (e) => {
-    if (!attachmentsAllowed) {
+    if (!finalAttachmentsAllowed ) {
       toast.warning("Seu plano atual não permite anexar arquivos.");
       return;
     }
@@ -80,9 +81,9 @@ export default function ChatInput({
         {/* Botão de anexos */}
         <button
           type="button"
-          onClick={() => attachmentsAllowed && fileInputRef.current.click()}
-          className={`p-3 rounded-xl hover:bg-gray-100 transition shadow ${!attachmentsAllowed ? "opacity-50 cursor-not-allowed" : ""}`}
-          title={attachmentsAllowed ? "Anexar arquivo" : "Melhore seu plano para utilizar este recurso!"}
+          onClick={() => finalAttachmentsAllowed  && fileInputRef.current.click()}
+          className={`p-3 rounded-xl hover:bg-gray-100 transition shadow ${!finalAttachmentsAllowed  ? "opacity-50 cursor-not-allowed" : ""}`}
+          title={finalAttachmentsAllowed  ? "Anexar arquivo" : "Melhore seu plano para utilizar este recurso!"}
         >
           <Paperclip className="w-6 h-6 text-gray-600" />
         </button>
@@ -94,7 +95,7 @@ export default function ChatInput({
           multiple
           hidden
           accept=".jpeg,.jpg,.png,.gif,.pdf"
-          disabled={!attachmentsAllowed} // desabilita input se não permitido
+          disabled={!finalAttachmentsAllowed } // desabilita input se não permitido
         />
 
         {/* Textarea */}

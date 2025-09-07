@@ -7,6 +7,7 @@ import FiltersPanel from "../workspace/components/FiltersPanel";
 import SortMenu from "../workspace/components/SortMenu";
 import { useNotifications } from "../../context/NotificationContext";
 import { notificationRoutes } from "../../services/apiRoutes";
+import { apiFetch } from "../../services/apiService";
 import useSelectionMode from "../workspace/hooks/useSelectionMode";
 import SelectionToggleButton from "../workspace/components/SelectionToggleButton";
 import SelectionToolbar from "../workspace/components/SelectionToolbar";
@@ -43,35 +44,27 @@ export default function NotificationsList() {
   const handleDeleteNotification = async (id) => {
     if (!window.confirm("Deseja excluir esta notificação?")) return;
     try {
-      const res = await fetch(notificationRoutes.delete(id), {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error();
+      await apiFetch(notificationRoutes.delete(id), { method: "DELETE" });
       const updated = notifications.filter((n) => n.id !== id);
       setNotifications(updated);
       setUnreadCount(updated.filter((n) => !n.is_read).length);
       toast.success("Notificação excluída.");
-    } catch {
-      toast.error("Erro ao excluir notificação.");
+    } catch (err) {
+      toast.error(err.message || "Erro ao excluir notificação.");
     }
   };
 
   const handleMarkAsRead = async (id) => {
     try {
-      const res = await fetch(notificationRoutes.markSingle(id), {
-        method: "PATCH",
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error();
+      await apiFetch(notificationRoutes.markSingle(id), { method: "PATCH" });
       const updated = notifications.map((n) =>
         n.id === id ? { ...n, is_read: true } : n
       );
       setNotifications(updated);
       setUnreadCount(updated.filter((n) => !n.is_read).length);
       toast.success("Notificação marcada como lida.");
-    } catch {
-      toast.error("Erro ao marcar como lida.");
+    } catch (err) {
+      toast.error(err.message || "Erro ao marcar como lida.");
     }
   };
 
@@ -80,20 +73,15 @@ export default function NotificationsList() {
     if (!window.confirm(`Deseja excluir ${selectedItems.length} notificação(ões)?`)) return;
     try {
       await Promise.all(
-        selectedIds.map((id) =>
-          fetch(notificationRoutes.delete(id), {
-            method: "DELETE",
-            credentials: "include",
-          })
-        )
+        selectedIds.map((id) => apiFetch(notificationRoutes.delete(id), { method: "DELETE" }))
       );
       const updated = notifications.filter((n) => !selectedIds.includes(n.id));
       setNotifications(updated);
       setUnreadCount(updated.filter((n) => !n.is_read).length);
       clearSelection();
       toast.success("Notificações excluídas.");
-    } catch {
-      toast.error("Erro ao excluir notificações.");
+    } catch (err) {
+      toast.error(err.message || "Erro ao excluir notificações.");
     }
   };
 
@@ -101,12 +89,7 @@ export default function NotificationsList() {
     if (selectedItems.length === 0) return;
     try {
       await Promise.all(
-        selectedIds.map((id) =>
-          fetch(notificationRoutes.markSingle(id), {
-            method: "PATCH",
-            credentials: "include",
-          })
-        )
+        selectedIds.map((id) => apiFetch(notificationRoutes.markSingle(id), { method: "PATCH" }))
       );
       const updated = notifications.map((n) =>
         selectedIds.includes(n.id) ? { ...n, is_read: true } : n
@@ -115,8 +98,8 @@ export default function NotificationsList() {
       setUnreadCount(updated.filter((n) => !n.is_read).length);
       clearSelection();
       toast.success("Notificações marcadas como lidas.");
-    } catch {
-      toast.error("Erro ao marcar notificações como lidas.");
+    } catch (err) {
+      toast.error(err.message || "Erro ao marcar notificações como lidas.");
     }
   };
 

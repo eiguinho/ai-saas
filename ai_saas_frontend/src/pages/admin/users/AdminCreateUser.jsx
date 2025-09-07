@@ -5,6 +5,7 @@ import { User, LockKeyhole, Mail, UserCircle, ArrowLeft, Layers } from "lucide-r
 import { toast } from "react-toastify";
 import Select from "react-select";
 import { adminRoutes, plansRoutes } from "../../../services/apiRoutes";
+import { apiFetch } from "../../../services/apiService";
 import styles from "../admin.module.css";
 
 export default function AdminCreateUser() {
@@ -25,29 +26,27 @@ export default function AdminCreateUser() {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*\W).{8,}$/;
 
+  // Carregar planos
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const res = await fetch(plansRoutes.list);
-        if (!res.ok) throw new Error("Erro ao carregar planos");
-        const data = await res.json();
+        const data = await apiFetch(plansRoutes.list);
         setPlans(data || []);
       } catch (err) {
-        toast.error(err.message);
+        toast.error(err.message || "Erro ao carregar planos");
       }
     };
     fetchPlans();
   }, []);
 
+  // Validação em tempo real
   useEffect(() => {
-    if (form.email && !emailRegex.test(form.email)) setEmailError("E-mail inválido");
-    else setEmailError("");
-
-    if (form.password && !passwordRegex.test(form.password))
-      setPasswordError(
-        "Senha deve ter 8+ caracteres, 1 maiúscula, 1 minúscula, 1 número e 1 caractere especial"
-      );
-    else setPasswordError("");
+    setEmailError(form.email && !emailRegex.test(form.email) ? "E-mail inválido" : "");
+    setPasswordError(
+      form.password && !passwordRegex.test(form.password)
+        ? "Senha deve ter 8+ caracteres, 1 maiúscula, 1 minúscula, 1 número e 1 caractere especial"
+        : ""
+    );
   }, [form.email, form.password]);
 
   const isFormValid =
@@ -68,8 +67,8 @@ export default function AdminCreateUser() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      setLoading(true);
       const formData = new FormData();
       formData.append("full_name", form.full_name);
       formData.append("username", form.username);
@@ -78,18 +77,15 @@ export default function AdminCreateUser() {
       formData.append("role", "user");
       formData.append("plan_id", form.plan_id);
 
-      const res = await fetch(adminRoutes.createUser(), {
+      await apiFetch(adminRoutes.createUser(), {
         method: "POST",
         body: formData,
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao criar usuário");
-
       toast.success("Usuário criado com sucesso!");
       navigate("/admin/users");
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err.message || "Erro ao criar usuário");
     } finally {
       setLoading(false);
     }
@@ -98,25 +94,26 @@ export default function AdminCreateUser() {
   return (
     <Layout>
       <div className={styles.returnLink}>
-                    <button
-                      onClick={() => navigate(-1)}
-                      className="flex items-center text-gray-700 hover:text-black"
-                    >
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                    </button>
-                    <nav className="flex items-center text-sm space-x-1">
-                      <Link to="/admin" className="text-gray-700 hover:text-black">
-                        Painel Administrativo
-                      </Link>
-                      <span>/</span>
-                      <span className="text-gray-500">Gerenciar Usuários</span>
-                    </nav>
-                  </div>
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center text-gray-700 hover:text-black"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+        </button>
+        <nav className="flex items-center text-sm space-x-1">
+          <Link to="/admin" className="text-gray-700 hover:text-black">
+            Painel Administrativo
+          </Link>
+          <span>/</span>
+          <span className="text-gray-500">Gerenciar Usuários</span>
+        </nav>
+      </div>
 
       <section className="bg-white rounded-xl shadow-md p-6 max-w-lg mx-auto">
         <h1 className="text-xl font-semibold mb-6">Criar Usuário</h1>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="relative">
+        <form onSubmit={handleSubmit}>
+          {/* Nome */}
+          <div className="relative mb-4">
             <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
@@ -129,7 +126,8 @@ export default function AdminCreateUser() {
             />
           </div>
 
-          <div className="relative">
+          {/* Username */}
+          <div className="relative mb-4">
             <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
@@ -142,7 +140,8 @@ export default function AdminCreateUser() {
             />
           </div>
 
-          <div className="relative">
+          {/* Email */}
+          <div className="relative mb-4">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="email"
@@ -150,13 +149,14 @@ export default function AdminCreateUser() {
               placeholder="Email"
               value={form.email}
               onChange={handleChange}
-              className="w-full pl-10 py-2 rounded-lg border text-black text-sm shadow-sm focus:outline-none focus:shadow-md border-gray-300"
+              className="w-full pl-10 py-2 rounded-lg border border-gray-300 text-black text-sm shadow-sm focus:outline-none focus:shadow-md"
               required
             />
-            {emailError && <p className="text-sm text-red-500 mt-1">{emailError}</p>}
+            {emailError && <p className="text-sm text-red-500 mt-1 ml-10">{emailError}</p>}
           </div>
 
-          <div className="relative">
+          {/* Senha */}
+          <div className="relative mb-4">
             <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="password"
@@ -169,10 +169,11 @@ export default function AdminCreateUser() {
               }`}
               required
             />
-            {passwordError && <p className="text-sm text-red-500 mt-1">{passwordError}</p>}
+            {passwordError && <p className="text-sm text-red-500 mt-1 ml-10">{passwordError}</p>}
           </div>
 
-          <div className="relative">
+          {/* Confirmar senha */}
+          <div className="relative mb-4">
             <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="password"
@@ -183,14 +184,13 @@ export default function AdminCreateUser() {
               className="w-full pl-10 py-2 rounded-lg border text-black border-gray-300 text-sm shadow-sm focus:outline-none focus:shadow-md"
               required
             />
-            {form.password &&
-              form.confirmPassword &&
-              form.password !== form.confirmPassword && (
-                <p className="text-sm text-red-500 mt-1">As senhas não coincidem</p>
-              )}
+            {form.password && form.confirmPassword && form.password !== form.confirmPassword && (
+              <p className="text-sm text-red-500 mt-1 ml-10">As senhas não coincidem</p>
+            )}
           </div>
 
-          <div className="relative">
+          {/* Plano */}
+          <div className="relative mb-4">
             <Layers className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Select
               value={plans.find((p) => p.id === form.plan_id) || null}

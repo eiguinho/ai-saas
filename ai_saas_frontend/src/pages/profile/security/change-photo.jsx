@@ -7,38 +7,51 @@ import styles from "../../profile/profile.module.css";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { userRoutes, profileRoutes, notificationRoutes } from "../../../services/apiRoutes";
+import { apiFetch } from "../../../services/apiService";
 import { useNotifications } from "../../../context/NotificationContext";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
 export default function EditPhotoPanel() {
   const { user, loginSuccess } = useAuth();
   const navigate = useNavigate();
+  const { fetchNotifications } = useNotifications();
 
   const [photoFile, setPhotoFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [loading, setLoading] = useState(false);
-  const { fetchNotifications } = useNotifications();
 
-  // Extrai nome do arquivo para URL da foto
-  const perfilPhoto = user?.perfil_photo;
-  let perfilPhotoFilename = null;
-  if (perfilPhoto && typeof perfilPhoto === "string") {
-    perfilPhotoFilename = perfilPhoto.replace(/\\/g, "/").split("/").pop();
-  }
-  const perfilPhotoUrl = perfilPhotoFilename ? `${API_BASE_URL}/static/uploads/${perfilPhotoFilename}` : null;
-
+  // Atualiza preview da foto: local se selecionou, senão rota protegida
   useEffect(() => {
-    if (photoFile) {
-      const url = URL.createObjectURL(photoFile);
-      setPreviewUrl(url);
-      return () => URL.revokeObjectURL(url);
-    } else if (perfilPhotoUrl) {
-      setPreviewUrl(perfilPhotoUrl);
-    } else {
-      setPreviewUrl("");
+  const fetchPhoto = async () => {
+    if (!user?.perfil_photo) {
+      setPreviewUrl(""); // fallback
+      return;
     }
-  }, [photoFile, perfilPhotoUrl]);
+
+    try {
+      const res = await fetch(profileRoutes.getPhoto(user.id), {
+        credentials: "include"
+      });
+
+      if (!res.ok) throw new Error("Não foi possível carregar a foto");
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      setPreviewUrl(url);
+    } catch (err) {
+      console.error("Erro ao buscar foto:", err);
+      setPreviewUrl(""); // fallback
+    }
+  };
+
+  if (photoFile) {
+    const url = URL.createObjectURL(photoFile);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  } else {
+    fetchPhoto();
+  }
+}, [photoFile, user]);
 
   const handlePhotoChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -55,24 +68,17 @@ export default function EditPhotoPanel() {
       const formData = new FormData();
       formData.append("perfil_photo", photoFile);
 
-      const res = await fetch(profileRoutes.updatePhoto(user.id), {
+      // Substitui fetch por apiFetch
+      await apiFetch(profileRoutes.updatePhoto(user.id), {
         method: "PUT",
-        credentials: "include",
-        body: formData,
+        body: formData, // formData funciona com apiFetch
       });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Erro ao atualizar foto");
-      }
 
       toast.success("Foto atualizada com sucesso!");
 
-      const updatedUser = await fetch(userRoutes.getCurrentUser(), { credentials: "include" }).then((res) => res.json());
-
+      const updatedUser = await fetch(userRoutes.getCurrentUser(), { credentials: "include" }).then(res => res.json());
       loginSuccess({ user: updatedUser });
       setPhotoFile(null);
-
       navigate("/profile/security");
     } catch (err) {
       toast.error(err.message);
@@ -86,34 +92,25 @@ export default function EditPhotoPanel() {
 
     setLoading(true);
     try {
-      const res = await fetch(profileRoutes.deletePhoto(user.id), {
+      await apiFetch(profileRoutes.deletePhoto(user.id), {
         method: "DELETE",
-        credentials: "include",
       });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Erro ao remover foto");
-      }
 
       toast.success("Foto removida com sucesso!");
 
-      await fetch(notificationRoutes.create, {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-            message: `Sua foto foi alterada!`,
-            link: "/profile"
-          }),
-          });
+      await apiFetch(notificationRoutes.create, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: "Sua foto foi alterada!",
+          link: "/profile",
+        }),
+      });
       fetchNotifications();
 
-      const updatedUser = await fetch(userRoutes.getCurrentUser(), { credentials: "include" }).then((res) => res.json());
-
+      const updatedUser = await fetch(userRoutes.getCurrentUser(), { credentials: "include" }).then(res => res.json());
       loginSuccess({ user: updatedUser });
       setPhotoFile(null);
-
       navigate("/profile/security");
     } catch (err) {
       toast.error(err.message);
@@ -125,29 +122,25 @@ export default function EditPhotoPanel() {
   return (
     <Layout>
       <div className={styles.returnLink}>
-                <button
-                  onClick={() => navigate(-1)}
-                  className="flex items-center text-gray-700 hover:text-black"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                </button>
-                <nav className="flex items-center text-sm space-x-1">
-                  <Link to="/profile" className="text-gray-700 hover:text-black">
-                    Perfil
-                  </Link>
-                  <span>/</span>
-                  <Link to="/profile/security" className="text-gray-700 hover:text-black">
-                    Security
-                  </Link>
-                  <span>/</span>
-                  <span className="text-gray-500">Editar Foto</span>
-                </nav>
-              </div>
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center text-gray-700 hover:text-black"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+        </button>
+        <nav className="flex items-center text-sm space-x-1">
+          <Link to="/profile" className="text-gray-700 hover:text-black">Perfil</Link>
+          <span>/</span>
+          <Link to="/profile/security" className="text-gray-700 hover:text-black">Segurança</Link>
+          <span>/</span>
+          <span className="text-gray-500">Editar Foto</span>
+        </nav>
+      </div>
+
       <section className="max-w-md mx-auto space-y-6">
         <h1 className={styles.title}>Atualizar Foto de Perfil</h1>
 
         <div className={`${styles.statCard} flex flex-col items-center space-y-6 relative`}>
-          {/* Container da foto com botão remover no canto */}
           <div className="relative">
             {previewUrl ? (
               <img
@@ -161,7 +154,6 @@ export default function EditPhotoPanel() {
               </div>
             )}
 
-            {/* Botão remover foto circular no canto superior direito */}
             {(previewUrl || photoFile) && (
               <button
                 onClick={handleRemovePhoto}

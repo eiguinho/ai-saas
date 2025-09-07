@@ -4,6 +4,7 @@ import Layout from "../../../components/layout/Layout";
 import styles from "./projects.module.css";
 import { toast } from "react-toastify";
 import { projectRoutes } from "../../../services/apiRoutes";
+import { apiFetch } from "../../../services/apiService";
 import { ArrowLeft, Search } from "lucide-react";
 import ContentCard from "../components/ContentCard";
 import SortMenu from "../components/SortMenu";
@@ -118,14 +119,12 @@ export default function ModifyContent() {
 
     try {
       const selectedIds = selectedContents.map((c) => c.id);
-      const res = await fetch(projectRoutes.updateContents(projectId), {
+      await apiFetch(projectRoutes.updateContents(projectId), {
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content_ids: selectedIds })
+        body: JSON.stringify({ content_ids: selectedIds }),
+        headers: { "Content-Type": "application/json" }
       });
 
-      if (!res.ok) throw new Error("Erro ao salvar alterações");
       toast.success("Alterações salvas!");
       setOriginalContents([...selectedContents]);
     } catch (err) {

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { formatDateTime } from "../../../utils/dateUtils";
 import { notificationRoutes } from "../../../services/apiRoutes";
 import { toast } from "react-toastify";
+import { apiFetch } from "../../../services/apiService";
 
 export default function NotificationItem({ notification, selected, setSelected }) {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -19,16 +20,16 @@ export default function NotificationItem({ notification, selected, setSelected }
   const handleDelete = async () => {
     if (!window.confirm("Deseja excluir esta notificação?")) return;
     setIsDeleting(true);
+
     try {
-      const res = await fetch(notificationRoutes.delete(notification.id), {
+      await apiFetch(notificationRoutes.delete(notification.id), {
         method: "DELETE",
-        credentials: "include",
       });
-      if (!res.ok) throw new Error("Erro ao excluir notificação");
+
       toast.success("Notificação excluída.");
       setSelected((prev) => prev.filter((id) => id !== notification.id));
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err.message || "Erro ao excluir notificação");
     } finally {
       setIsDeleting(false);
     }

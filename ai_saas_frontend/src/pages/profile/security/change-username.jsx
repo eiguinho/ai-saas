@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 import styles from "../profile.module.css";
 import { userRoutes, notificationRoutes } from "../../../services/apiRoutes";
+import { apiFetch } from "../../../services/apiService";
 import { useNotifications } from "../../../context/NotificationContext";
 
 export default function EditUsername() {
@@ -30,32 +31,34 @@ export default function EditUsername() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
-      const res = await fetch(userRoutes.updateUser(user.id), {
+      // Atualiza o username
+      await apiFetch(userRoutes.updateUser(user.id), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ username: form.username }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao atualizar nome de usuário.");
 
       toast.success("Nome de usuário atualizado com sucesso!");
 
-      await fetch(notificationRoutes.create, {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-            message: `Seu nome de usuário foi alterado!`,
-            link: "/profile"
-          }),
-          });
-      fetchNotifications();
+      // Cria notificação
+      await apiFetch(notificationRoutes.create, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: `Seu nome de usuário foi alterado!`,
+          link: "/profile",
+        }),
+      });
 
-      const updatedUser = await fetch(userRoutes.getCurrentUser(), {
-        credentials: "include",
-      }).then((res) => res.json());
+      fetchNotifications(); // atualiza o contexto de notificações
+
+      // Busca usuário atualizado
+      const updatedUser = await apiFetch(userRoutes.getCurrentUser(), {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
 
       loginSuccess({ user: updatedUser });
 

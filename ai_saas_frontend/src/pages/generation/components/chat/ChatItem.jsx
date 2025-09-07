@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { MoreVertical, Edit2, Trash2, Archive, CornerUpLeft } from "lucide-react";
 import { toast } from "react-toastify";
 import { chatRoutes } from "../../../../services/apiRoutes";
+import { apiFetch } from "../../../../services/apiService";
 
 export default function ChatItem({ chat, selected, loadChat, onUpdateList }) {
   const [open, setOpen] = useState(false);
@@ -42,40 +43,32 @@ export default function ChatItem({ chat, selected, loadChat, onUpdateList }) {
 
   const handleRename = async () => {
     try {
-      const res = await fetch(`${chatRoutes.list}${chat.id}`, {
+      const data = await apiFetch(`${chatRoutes.list}${chat.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: newTitle }),
-        credentials: "include",
       });
-      const data = await res.json();
-      if (res.ok) {
-        toast.success("Chat renomeado!");
-        onUpdateList(chat, "rename", newTitle); // apenas atualiza a lista
-        setRenaming(false);
-        setOpen(false);
-      } else throw new Error(data.error || "Erro ao renomear");
+
+      toast.success("Chat renomeado!");
+      onUpdateList(chat, "rename", newTitle);
+      setRenaming(false);
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err.message || "Erro ao renomear");
     }
   };
 
   const handleDelete = async () => {
     if (!confirm("Deseja realmente deletar este chat?")) return;
+
     try {
-      const res = await fetch(`${chatRoutes.list}${chat.id}`, {
+      await apiFetch(`${chatRoutes.list}${chat.id}`, {
         method: "DELETE",
-        credentials: "include",
       });
-      if (res.ok) {
-        toast.success("Chat deletado!");
-        onUpdateList(chat, "delete"); // remove da lista e limpa seleção se for o chat atual
-      } else {
-        const data = await res.json();
-        throw new Error(data.error || "Erro ao deletar");
-      }
+
+      toast.success("Chat deletado!");
+      onUpdateList(chat, "delete");
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err.message || "Erro ao deletar");
     }
   };
 
@@ -85,18 +78,12 @@ export default function ChatItem({ chat, selected, loadChat, onUpdateList }) {
         ? `${chatRoutes.list}${chat.id}/unarchive`
         : `${chatRoutes.list}${chat.id}/archive`;
 
-      const res = await fetch(endpoint, { method: "PATCH", credentials: "include" });
+      await apiFetch(endpoint, { method: "PATCH" });
 
-      if (res.ok) {
-        const action = chat.archived ? "unarchive" : "archive";
-        toast.success(`Chat ${action === "archive" ? "arquivado" : "desarquivado"}!`);
-        onUpdateList(chat, action); // apenas atualiza a lista, não muda o chat atual
-      } else {
-        const data = await res.json();
-        throw new Error(data.error || "Erro ao atualizar status do chat");
-      }
+      toast.success(`Chat ${chat.archived ? "desarquivado" : "arquivado"}!`);
+      onUpdateList(chat, chat.archived ? "unarchive" : "archive");
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err.message || "Erro ao atualizar status do chat");
     }
   };
 
@@ -137,7 +124,10 @@ export default function ChatItem({ chat, selected, loadChat, onUpdateList }) {
             onClick={(e) => e.stopPropagation()}
           >
             <button
-              onClick={() => { setRenaming(true); setOpen(false); }}
+              onClick={() => {
+                setRenaming(true);
+                setOpen(false);
+              }}
               className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 w-full text-left text-sm"
             >
               <Edit2 className="w-4 h-4" /> Renomear

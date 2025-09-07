@@ -13,7 +13,7 @@ from .plan import (
     Feature,
     PlanFeature,
 ) 
-from .chat import Chat
+from .chat import Chat, ChatMessage, ChatAttachment
 
 __all__ = [
     "User",
@@ -28,4 +28,6 @@ __all__ = [
     "project_content_association",
     "Notification",
     "Chat"
+    "ChatMessage",
+    "ChatAttachment",
 ]

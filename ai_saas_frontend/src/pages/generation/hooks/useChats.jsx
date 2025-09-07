@@ -14,7 +14,8 @@ export default function useChats() {
         const res = await fetch(chatRoutes.list, { credentials: "include" });
         const data = await res.json();
         setChats(data || []);
-      } catch {
+      } catch (err) {
+        console.error("Erro ao carregar chats:", err);
         toast.error("Erro ao carregar chats");
       }
     };
@@ -32,7 +33,8 @@ export default function useChats() {
         setMessages(data.messages || []);
         setChatVisible(true);
       }, 200);
-    } catch {
+    } catch (err) {
+      console.error("Erro ao carregar mensagens:", err);
       toast.error("Erro ao carregar mensagens do chat");
     }
   };
@@ -47,43 +49,41 @@ export default function useChats() {
   };
 
   const updateChatList = (chatData, action, newTitle) => {
+    setChats((prev) => {
+      let updated;
 
-  setChats((prev) => {
+      if (action === "add") {
+        const exists = prev.find((c) => c.id === chatData.id);
+        updated = exists
+          ? prev.map((c) => (c.id === chatData.id ? { ...c, ...chatData } : { ...c }))
+          : [{ ...chatData }, ...prev.map((c) => ({ ...c }))];
 
-    let updated;
+        setChatId(chatData.id);
+        loadChat(chatData.id);
+        return updated;
+      }
 
-    if (action === "add") {
-      const exists = prev.find((c) => c.id === chatData.id);
-      updated = exists
-        ? prev.map((c) => (c.id === chatData.id ? { ...c, ...chatData } : { ...c }))
-        : [{ ...chatData }, ...prev.map(c => ({ ...c }))];
+      // rename, archive, unarchive, delete
+      updated = prev
+        .map((ch) => {
+          if (!ch) return null;
+          if (ch.id !== chatData.id) return { ...ch };
+          if (action === "rename") return { ...ch, title: newTitle || "Sem título" };
+          if (action === "archive") return { ...ch, archived: true };
+          if (action === "unarchive") return { ...ch, archived: false };
+          return { ...ch };
+        })
+        .filter(Boolean)
+        .filter((ch) => !(action === "delete" && ch.id === chatData.id));
 
-      setChatId(chatData.id);
-      loadChat(chatData.id);
+      if (action === "delete" && chatData.id === chatId) {
+        setChatId(null);
+        setMessages([]);
+      }
+
       return updated;
-    }
-
-    // rename, archive, unarchive, delete
-    updated = prev
-      .map((ch) => {
-        if (ch.id !== chatData.id) return { ...ch }; // força novo objeto
-        if (action === "rename") return { ...ch, title: newTitle };
-        if (action === "archive") return { ...ch, archived: true };
-        if (action === "unarchive") return { ...ch, archived: false };
-        return { ...ch };
-      })
-      .filter((ch) => !(action === "delete" && ch.id === chatData.id));
-
-    if (action === "delete" && chatData.id === chatId) {
-  setChatId(null);
-  setMessages([]);
-}
-
-// PARA RENAME/ARCHIVE/UNARCHIVE: não altera o chat atual
-// Então só retorna a lista atualizada
-return updated;
-  });
-};
+    });
+  };
 
   return {
     chats,

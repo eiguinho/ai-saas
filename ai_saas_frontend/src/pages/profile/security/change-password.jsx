@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 import styles from "../profile.module.css";
 import { authRoutes, userRoutes, notificationRoutes } from "../../../services/apiRoutes";
+import { apiFetch } from "../../../services/apiService";
 import { useNotifications } from "../../../context/NotificationContext";
 
 export default function EditPassword() {
@@ -50,49 +51,44 @@ export default function EditPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (form.oldPassword === form.newPassword) {
-        toast.error("A nova senha não pode ser igual à senha atual.");
-        return;
+      toast.error("A nova senha não pode ser igual à senha atual.");
+      return;
     }
     setLoading(true);
-    
-    try {
-        const verify = await fetch(authRoutes.verifyPassword, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ password: form.oldPassword }),
-        });
 
-        if (!verify.ok) {
-            const data = await verify.json();
-            throw new Error(data.error || "Senha atual inválida.");
-        }
-      const res = await fetch(userRoutes.updateUser(user.id), {
+    try {
+      // Verifica senha atual
+      await apiFetch(authRoutes.verifyPassword, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: form.oldPassword }),
+      });
+
+      // Atualiza senha
+      await apiFetch(userRoutes.updateUser(user.id), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({
           old_password: form.oldPassword,
           password: form.newPassword,
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao atualizar senha.");
-
       toast.success("Senha atualizada com sucesso!");
 
-      await fetch(notificationRoutes.create, {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-            message: `Sua senha foi alterada!`,
-            link: "/profile"
-          }),
-          });
+      // Cria notificação
+      await apiFetch(notificationRoutes.create, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: "Sua senha foi alterada!",
+          link: "/profile",
+        }),
+      });
+
       fetchNotifications();
 
+      // Busca usuário atualizado
       const updatedUser = await fetch(userRoutes.getCurrentUser(), {
         credentials: "include",
       }).then((res) => res.json());

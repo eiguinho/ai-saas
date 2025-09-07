@@ -1,5 +1,5 @@
 from flask_bcrypt import Bcrypt
-from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity, create_access_token, get_jwt
+from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity, create_access_token, get_jwt, set_access_cookies
 from flask_sqlalchemy import SQLAlchemy
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address

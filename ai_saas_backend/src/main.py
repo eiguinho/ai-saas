@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, send_from_directory, request, make_response
 from flask_cors import CORS
 from flask_limiter.errors import RateLimitExceeded
 from flask_jwt_extended.exceptions import RevokedTokenError
@@ -16,10 +16,24 @@ app = Flask(__name__)
 CORS(
     app,
     supports_credentials=True,  
-    origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:8000", "http://127.0.0.1:8000", "http://26.21.17.14:3000"],  # ou "*" se for dev
-    allow_headers=["Content-Type", "Authorization"],
-    methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"]
+    origins=[
+        "https://artificiall.ai",
+        "https://api.artificiall.ai"
+        ],  # frontend real
+    allow_headers=["Content-Type", "X-CSRF-Token", "Authorization"],
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
 )
+
+@app.before_request
+def handle_options_request():
+    if request.method == "OPTIONS":
+        response = make_response()
+        response.headers["Access-Control-Allow-Origin"] = "https://artificiall.ai"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-CSRF-Token, Authorization"
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.status_code = 200
+        return response
 
 # Caminho do banco SQLite
 #basedir = os.path.abspath(os.path.dirname(__file__))
@@ -34,10 +48,12 @@ app.secret_key = os.getenv("SECRET_KEY")
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 
 app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
-app.config["JWT_COOKIE_SECURE"] = False  # TRUE DEPOIS
+app.config["JWT_COOKIE_SECURE"] = True  # cookies só via HTTPS
 app.config["JWT_ACCESS_COOKIE_PATH"] = "/"
-app.config["JWT_COOKIE_CSRF_PROTECT"] = False  #ATIVAR DEPOIS pra testes deixe False
+app.config["JWT_COOKIE_CSRF_PROTECT"] = True
 app.config["JWT_ACCESS_COOKIE_NAME"] = "access_token_cookie"
+app.config["JWT_COOKIE_SAMESITE"] = "None"  # necessário para cross-site requests (frontend -> backend)
+app.config["JWT_COOKIE_DOMAIN"] = ".artificiall.ai"
 
 # Inicializa o SQLAlchemy
 db.init_app(app)
@@ -122,6 +138,8 @@ app.register_blueprint(generated_content_api, url_prefix="/api/contents")
 app.register_blueprint(notification_api, url_prefix="/api/notifications")
 app.register_blueprint(ai_generation_api, url_prefix="/api/ai")
 app.register_blueprint(chat_api, url_prefix="/api/chats")
+
+print("🚀 CORS configurado para:", app.config.get("CORS_ALLOW_HEADERS"))
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=8000, debug=True)

@@ -8,6 +8,7 @@ import useContentsFetch from "../hooks/useContentsFetch";
 import useFilters from "../hooks/useFilters";
 import { Trash2 } from "lucide-react";
 import { generatedContentRoutes } from "../../../services/apiRoutes";
+import { apiFetch } from "../../../services/apiService";
 import { toast } from "react-toastify";
 import useSelectionMode from "../hooks/useSelectionMode";
 import SelectionToggleButton from "../components/SelectionToggleButton";
@@ -40,20 +41,18 @@ export default function GeneratedContentsList() {
     if (!confirm(`Excluir ${selectedItems.length} conteúdo(s) selecionado(s)?`)) return;
 
     const ids = selectedItems.map((c) => c.id);
-    const res = await fetch(generatedContentRoutes.deleteBatch, {
-      method: "DELETE",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids })
-    });
+    try {
+      await apiFetch(generatedContentRoutes.deleteBatch, {
+        method: "DELETE",
+        body: JSON.stringify({ ids }),
+        headers: { "Content-Type": "application/json" }
+      });
 
-    if (res.ok) {
       toast.success(`${selectedItems.length} conteúdo(s) excluído(s)!`);
       setAllContents((prev) => prev.filter((c) => !ids.includes(c.id)));
       clearSelection();
-    } else {
-      const err = await res.json();
-      toast.error(err.error || "Erro ao excluir conteúdos");
+    } catch (err) {
+      toast.error(err.message);
     }
   }
 

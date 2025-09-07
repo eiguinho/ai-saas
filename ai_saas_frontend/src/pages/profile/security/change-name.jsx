@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 import styles from "../profile.module.css";
 import { userRoutes, notificationRoutes } from "../../../services/apiRoutes";
+import { apiFetch } from "../../../services/apiService";
 import { useNotifications } from "../../../context/NotificationContext";
 
 export default function EditName() {
@@ -30,37 +31,37 @@ export default function EditName() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
-      const res = await fetch(userRoutes.updateUser(user.id), {
+      // Atualiza nome completo
+      await apiFetch(userRoutes.updateUser(user.id), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ full_name: form.full_name }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao atualizar nome.");
 
       toast.success("Nome atualizado com sucesso!");
 
-      await fetch(notificationRoutes.create, {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-            message: `Seu nome foi alterado!`,
-            link: "/profile"
-          }),
-          });
-      fetchNotifications();
+      // Cria notificação
+      await apiFetch(notificationRoutes.create, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: `Seu nome foi alterado!`,
+          link: "/profile",
+        }),
+      });
 
-        const updatedUser = await fetch(userRoutes.getCurrentUser(), {
+      fetchNotifications(); // atualiza contexto de notificações
+
+      // Busca usuário atualizado (GET normal)
+      const updatedUser = await fetch(userRoutes.getCurrentUser(), {
         credentials: "include",
-        }).then((res) => res.json());
+      }).then((res) => res.json());
 
-        loginSuccess({ user: updatedUser });
+      loginSuccess({ user: updatedUser });
 
-        navigate("/profile/security");
-        
+      navigate("/profile/security");
     } catch (err) {
       toast.error(err.message);
     } finally {

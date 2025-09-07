@@ -1,11 +1,13 @@
 from flask import Blueprint, request, jsonify
 from extensions import bcrypt, db, jwt_required, get_jwt_identity
-from models import User
+from models import (
+    User, Chat, ChatMessage, ChatAttachment,
+    Project, GeneratedContent, Notification
+)
 from dotenv import load_dotenv
 import re
 
 user_api = Blueprint("user_api", __name__)
-
 load_dotenv()
 
 # Obter dados do usuário
@@ -29,6 +31,12 @@ def get_user(user_id):
         "id": user.id,
         "full_name": user.full_name,
         "username": user.username,
+        "email": user.email,
+        "role": user.role,
+        "perfil_photo": user.perfil_photo,
+        "is_active": user.is_active,
+        "created_at": user.created_at.isoformat(),
+        "updated_at": user.updated_at.isoformat()
     }
     return jsonify(user_data), 200
 
@@ -89,7 +97,6 @@ def update_user(user_id):
 def delete_user(user_id):
     current_user_id = get_jwt_identity()
     current_user = User.query.get(current_user_id)
-
     if not current_user:
         return jsonify({"error": "Usuário inválido"}), 403
 
@@ -100,9 +107,48 @@ def delete_user(user_id):
     if not user:
         return jsonify({"error": "Usuário não encontrado"}), 404
 
-    db.session.delete(user)
-    db.session.commit()
-    return jsonify({"message": "Usuário excluído com sucesso"}), 200
+    try:
+        # ============================
+        # Deletar chats, mensagens e attachments
+        # ============================
+        for chat in user.chats:
+            for message in chat.messages:
+                for attachment in message.attachments:
+                    db.session.delete(attachment)
+                db.session.delete(message)
+            db.session.delete(chat)
+
+        # ============================
+        # Deletar projects e associações com generated contents
+        # ============================
+        for project in user.projects:
+            project.contents = []  # remove associações
+            db.session.delete(project)
+
+        # ============================
+        # Deletar generated contents
+        # ============================
+        for content in user.generated_contents:
+            content.projects = []  # remove associações
+            db.session.delete(content)
+
+        # ============================
+        # Deletar notifications
+        # ============================
+        for notification in user.notifications:
+            db.session.delete(notification)
+
+        # ============================
+        # Deletar usuário
+        # ============================
+        db.session.delete(user)
+        db.session.commit()
+
+        return jsonify({"message": "Usuário excluído com sucesso"}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": "Erro ao excluir usuário", "details": str(e)}), 500
 
 # Dados do usuário logado
 @user_api.route("/me", methods=["GET"])

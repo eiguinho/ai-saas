@@ -14,7 +14,7 @@ function MessageBubble({ msg }) {
 
   return (
     <div
-      className={`max-w-[70%] p-4 rounded-2xl shadow-sm break-words my-3 ${
+      className={`max-w-[75%] p-4 rounded-2xl shadow-md break-words my-6 leading-relaxed ${
         isUser
           ? "ml-auto bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-theme-dark)] text-white"
           : "mr-auto bg-white text-gray-800"
@@ -24,11 +24,14 @@ function MessageBubble({ msg }) {
         <TypingIndicator />
       ) : (
         <>
-          {content && <MessageContent content={content} />}
-
+          {content && (
+            <div className="markdown">
+              <MessageContent content={content} isUserMessage={msg.role === "user"} />
+            </div>
+          )}
           {attachments && attachments.length > 0 && (
             <div
-              className={`mt-4 flex flex-wrap gap-3 ${
+              className={`mt-5 flex flex-wrap gap-4 ${
                 attachments.length === 1 ? "justify-center" : "justify-start"
               }`}
             >
@@ -44,9 +47,9 @@ function MessageBubble({ msg }) {
                       href={attUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex flex-col items-center justify-center w-24 h-24 rounded-md bg-red-500 p-1 text-center hover:bg-red-700 transition"
+                      className="flex flex-col items-center justify-center w-28 h-28 rounded-lg bg-red-500 p-2 text-center hover:bg-red-700 transition"
                     >
-                      <div className="flex flex-col items-center justify-center w-full h-full rounded-md bg-white p-2">
+                      <div className="flex flex-col items-center justify-center w-full h-full rounded-md bg-white p-3">
                         <span className="font-bold text-lg text-red-500">.PDF</span>
                         <span className="text-xs mt-1 text-gray-800 break-all">{att.name}</span>
                       </div>
@@ -75,8 +78,8 @@ function MessageBubble({ msg }) {
                     alt={att.name || "imagem"}
                     className={
                       attachments.length === 1
-                        ? "rounded-md object-contain max-w-[300px] max-h-[200px]"
-                        : "rounded-md object-cover w-24 h-24"
+                        ? "rounded-md object-contain max-w-[400px] max-h-[250px]"
+                        : "rounded-md object-cover w-28 h-28"
                     }
                   />
                 );

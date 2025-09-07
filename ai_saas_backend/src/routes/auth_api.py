@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, make_response
 from extensions import (
     bcrypt, db, limiter, redis_client,
-    jwt_required, create_access_token, get_jwt, get_jwt_identity
+    jwt_required, create_access_token, set_access_cookies, get_jwt, get_jwt_identity
 )
 from utils import add_token_to_blacklist
 from models import User, Plan
@@ -13,78 +13,6 @@ from routes.email_api import send_reset_password_email
 auth_api = Blueprint("auth_api", __name__)
 
 load_dotenv()
-
-# Criar usuário
-'''
-@auth_api.route("/", methods=["POST"])
-def create_user():
-    data = request.form
-    file = request.files.get("perfil_photo")
-
-    def is_valid_email(email):
-        return re.match(r"[^@]+@[^@]+\.[^@]+", email)
-
-    if not is_valid_email(data.get("email", "")):
-        return jsonify({"error": "Email inválido"}), 400
-
-    required_fields = ["full_name", "username", "email", "password"]
-    for field in required_fields:
-        if field not in data or not data.get(field):
-            return jsonify({"error": f"Campo obrigatório: {field}"}), 400
-
-    if User.query.filter_by(username=data["username"]).first():
-        return jsonify({"error": "Username já existe"}), 400
-    if User.query.filter_by(email=data["email"]).first():
-        return jsonify({"error": "Email já cadastrado"}), 400
-
-    password = data["password"]
-    pattern = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*\W).{8,}$"
-    if not re.match(pattern, password):
-        return jsonify({"error": "Senha fraca"}), 400
-
-    perfil_path = None
-    if file:
-        filename = f"{uuid.uuid4()}_{file.filename}"
-        upload_dir = os.path.join("static", "uploads")
-        os.makedirs(upload_dir, exist_ok=True)
-        filepath = os.path.join(upload_dir, filename)
-        file.save(filepath)
-        perfil_path = filepath
-
-    email = data["email"]
-    email_verified = redis_client.get(f"email_verified:{email}")
-    if email_verified is None:
-        return jsonify({"error": "Email ainda não verificado"}), 400
-
-    if isinstance(email_verified, bytes):
-        email_verified = email_verified.decode()
-
-    if email_verified != "true":
-        return jsonify({"error": "Email ainda não verificado"}), 400
-
-    hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
-
-    # Buscar plano Free
-    free_plan = Plan.query.filter_by(name="Inicial").first()
-    if not free_plan:
-        return jsonify({"error": "Plano Free não encontrado"}), 500
-
-    new_user = User(
-        id=str(uuid.uuid4()),
-        full_name=data["full_name"],
-        username=data["username"],
-        email=data["email"],
-        password=hashed_password,
-        perfil_photo=perfil_path,
-        payment_method=data.get("payment_method"),
-        plan=free_plan  # Associa o plano Free automaticamente
-    )
-
-    db.session.add(new_user)
-    db.session.commit()
-
-    return jsonify({"message": "Usuário criado com sucesso", "id": new_user.id}), 201
-'''
 
 # Login
 @auth_api.route("/login", methods=["POST"])
@@ -128,8 +56,18 @@ def login():
                 "username": user.username,
                 "email": user.email,
                 "role": user.role,
-                "plan": user.plan.name if user.plan else None,
-                "features": features_list,
+                "plan": {
+                    "id": user.plan.id if user.plan else None,
+                    "name": user.plan.name if user.plan else None,
+                    "features": [
+                        {
+                            "key": pf.feature.key if pf.feature else "",
+                            "description": pf.feature.description if pf.feature else "",
+                            "value": pf.value
+                        }
+                        for pf in user.plan.features
+                    ] if user.plan else []
+                } if user.plan else None,
                 "perfil_photo": user.perfil_photo,
                 "is_active": user.is_active,
                 "created_at": user.created_at.isoformat(),
@@ -137,14 +75,7 @@ def login():
             }
         }))
 
-        resp.set_cookie(
-            "access_token_cookie",
-            access_token,
-            httponly=True,
-            secure=False,  # Em produção, mude para True
-            samesite="Strict",
-            max_age=60 * 60 * 2
-        )
+        set_access_cookies(resp, access_token)
         return resp
     else:
         return jsonify({"error": "Credenciais inválidas"}), 401

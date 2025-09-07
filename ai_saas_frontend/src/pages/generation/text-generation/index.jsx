@@ -1,15 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "../../../components/layout/Layout";
 import MessageListVirtualized from "../components/chat/MessageListVirtualized";
 import ChatInput from "../components/chat/ChatInput";
 import ChatControls from "../components/controls/ChatControls";
 import Sidebar from "../components/chat/Sidebar";
 import { TEXT_MODELS } from "../../../utils/constants";
+import { toast } from "react-toastify";
 import useChats from "../hooks/useChats";
 import useChatActions from "../hooks/useChatActions";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useAuth } from "../../../context/AuthContext";
 
 function TextGeneration() {
+  const { user } = useAuth();
   const { chats, chatId, messages, setMessages, chatVisible, chatIdSetter, loadChat, createNewChat, updateChatList } = useChats();
   const [input, setInput] = useState("");
   const [model, setModel] = useState("gpt-4o");
@@ -33,11 +36,33 @@ function TextGeneration() {
     updateChatList,
   });
 
+  // 🔥 Reagir à mudanças de user
+  useEffect(() => {
+    if (user) {
+      // Aqui você pode habilitar/desabilitar controles, anexos, ou atualizar UI
+      if (user.plan?.name === "Pro") {
+      }
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (!attachmentsAllowed && files.length > 0) {
+      toast.warning("Arquivos removidos pois este modelo não permite anexos.");
+      setFiles([]);
+    }
+  }, [attachmentsAllowed]);
+
   return (
     <Layout mainSidebarCollapsed={mainSidebarCollapsed}>
       <div className="flex w-full h-[calc(100vh-120px)] overflow-hidden bg-gray-50 font-inter">
         <div className={`absolute top-0 left-0 h-full transition-all duration-300 z-40 ${sidebarCollapsed ? "-ml-72" : "ml-0"}`}>
-          <Sidebar chats={chats} chatId={chatId} loadChat={loadChat} createNewChat={createNewChat} updateChatList={updateChatList} />
+          <Sidebar
+            chats={chats}
+            chatId={chatId}
+            loadChat={loadChat}
+            createNewChat={createNewChat}
+            updateChatList={updateChatList}
+          />
         </div>
 
         <button
@@ -59,12 +84,13 @@ function TextGeneration() {
           ) : (
             <MessageListVirtualized
               messages={messages}
-              height={window.innerHeight - 200}
+              height={window.innerHeight - 180}
               width="100%"
+              className="py-4 px-2"
             />
           )}
 
-          <div className="mt-4 flex flex-col gap-3 rounded-3xl shadow-xl p-6 border border-gray-200">
+          <div className="mt-6 flex flex-col gap-4 rounded-3xl shadow-xl p-6 border border-gray-200 bg-white">
             <ChatInput 
               input={input} 
               setInput={setInput} 
@@ -79,7 +105,15 @@ function TextGeneration() {
               setFiles={setFiles} 
               attachmentsAllowed={attachmentsAllowed} 
             />
-            <ChatControls model={model} setModel={setModel} temperature={temperature} setTemperature={setTemperature} maxTokens={maxTokens} setMaxTokens={setMaxTokens} isTemperatureLocked={isTemperatureLocked} />
+            <ChatControls
+              model={model}
+              setModel={setModel}
+              temperature={temperature}
+              setTemperature={setTemperature}
+              maxTokens={maxTokens}
+              setMaxTokens={setMaxTokens}
+              isTemperatureLocked={isTemperatureLocked}
+            />
           </div>
         </div>
       </div>

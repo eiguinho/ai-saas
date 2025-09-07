@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { toast } from "react-toastify";
 import Select from "react-select";
 import { userRoutes, adminRoutes, plansRoutes } from "../../../services/apiRoutes";
+import { apiFetch } from "../../../services/apiService";
 
 export default function UserDetailsModal({ user, onClose, onUpdate }) {
   const [fullName, setFullName] = useState(user.full_name);
@@ -16,9 +17,7 @@ export default function UserDetailsModal({ user, onClose, onUpdate }) {
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const res = await fetch(plansRoutes.list, { credentials: "include" });
-        if (!res.ok) throw new Error();
-        const data = await res.json();
+        const data = await apiFetch(plansRoutes.list);
         setPlans(data);
       } catch {
         toast.error("Erro ao carregar planos.");
@@ -38,30 +37,27 @@ export default function UserDetailsModal({ user, onClose, onUpdate }) {
   const handleSave = async () => {
     setLoading(true);
     try {
-      const resUser = await fetch(userRoutes.updateUser(user.id), {
+      // Atualiza dados do usuário
+      await apiFetch(userRoutes.updateUser(user.id), {
         method: "PUT",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ full_name: fullName, username, email }),
       });
-      if (!resUser.ok) throw new Error("Erro ao atualizar dados do usuário");
 
-      const resStatus = await fetch(adminRoutes.updateUserStatus(user.id), {
+      // Atualiza status
+      await apiFetch(adminRoutes.updateUserStatus(user.id), {
         method: "PUT",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ is_active: isActive }),
       });
-      if (!resStatus.ok) throw new Error("Erro ao atualizar status do usuário");
 
+      // Atualiza plano
       if (plan) {
-        const planRes = await fetch(adminRoutes.updateUserPlan(user.id), {
+        await apiFetch(adminRoutes.updateUserPlan(user.id), {
           method: "PUT",
-          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ plan_id: plan }),
         });
-        if (!planRes.ok) throw new Error("Erro ao atualizar plano");
       }
 
       toast.success("Usuário atualizado.");
@@ -75,7 +71,6 @@ export default function UserDetailsModal({ user, onClose, onUpdate }) {
         plan: plans.find((p) => p.id === plan) || user.plan?.id,
       };
       onUpdate(updatedUser);
-
     } catch (err) {
       toast.error(err.message || "Erro ao atualizar usuário.");
     } finally {
@@ -118,60 +113,33 @@ export default function UserDetailsModal({ user, onClose, onUpdate }) {
         <h2 className="text-lg font-semibold mb-5">Editar Usuário</h2>
 
         <div className="flex flex-col gap-4">
+          {/* Campos */}
           <div>
             <label className="block text-sm font-medium mb-1">Nome Completo</label>
-            <input
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
-            />
+            <input value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 transition" />
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-1">Username</label>
-            <input
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
-            />
+            <input value={username} onChange={(e) => setUsername(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 transition" />
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-1">Email</label>
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
-            />
+            <input value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 transition" />
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-1">Plano</label>
-            <Select
-              value={planOptions.find((p) => p.value === plan)}
-              onChange={(selected) => setPlan(selected?.value || "")}
-              options={planOptions}
-              isSearchable={false}
-              styles={selectStyles}
-            />
+            <Select value={planOptions.find((p) => p.value === plan)} onChange={(selected) => setPlan(selected?.value || "")} options={planOptions} isSearchable={false} styles={selectStyles} />
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-1">Ativo?</label>
-            <Select
-              value={activeOptions.find((a) => a.value === isActive)}
-              onChange={(selected) => setIsActive(selected.value)}
-              options={activeOptions}
-              isSearchable={false}
-              styles={selectStyles}
-            />
+            <Select value={activeOptions.find((a) => a.value === isActive)} onChange={(selected) => setIsActive(selected.value)} options={activeOptions} isSearchable={false} styles={selectStyles} />
           </div>
 
-          <button
-            onClick={handleSave}
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition disabled:opacity-50"
-          >
+          <button onClick={handleSave} disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition disabled:opacity-50">
             {loading ? "Salvando..." : "Salvar alterações"}
           </button>
         </div>

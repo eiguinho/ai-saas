@@ -5,6 +5,7 @@ import Layout from "../../../components/layout/Layout";
 import styles from "./projects.module.css";
 import { toast } from "react-toastify";
 import { projectRoutes } from "../../../services/apiRoutes";
+import { apiFetch } from "../../../services/apiService";
 
 export default function EditProject() {
   const { id } = useParams();
@@ -41,23 +42,20 @@ export default function EditProject() {
     }
 
     setSaving(true);
-    try {
-      const res = await fetch(projectRoutes.update(id), {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ name, description }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao salvar projeto");
-      toast.success("Projeto atualizado com sucesso!");
-      navigate("/workspace/projects");
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setSaving(false);
-    }
-  };
+      try {
+        await apiFetch(projectRoutes.update(id), {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, description }),
+        });
+        toast.success("Projeto atualizado com sucesso!");
+        navigate("/workspace/projects");
+      } catch (err) {
+        toast.error(err.message);
+      } finally {
+        setSaving(false);
+      }
+    };
 
   useEffect(() => {
     fetchProject();
