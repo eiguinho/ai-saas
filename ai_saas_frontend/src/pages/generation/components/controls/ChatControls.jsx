@@ -28,8 +28,6 @@ export default function ChatControls({
   setModel,
   temperature,
   setTemperature,
-  maxTokens,
-  setMaxTokens,
   isTemperatureLocked,
 }) {
   const { user } = useAuth();
@@ -109,19 +107,6 @@ export default function ChatControls({
           />
         </div>
       )}
-
-      <div className="flex-1 flex flex-col">
-        <label className="text-gray-700 font-medium mb-1">Max Tokens: {maxTokens}</label>
-        <input
-          type="range"
-          min="100"
-          max="2000"
-          step="100"
-          value={maxTokens}
-          onChange={(e) => setMaxTokens(parseInt(e.target.value))}
-          className="w-full h-2 rounded-full bg-gray-200 accent-[var(--color-primary)] cursor-pointer"
-        />
-      </div>
     </div>
   );
 }

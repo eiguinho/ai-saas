@@ -22,7 +22,7 @@ def create_default_plans():
         "attach_files": "Anexar arquivos",
         "limit_chats": "Limite de chats",
         "limit_messages": "Limite de mensagens por chat",
-        "customization": "Personalização das respostas (temperatura e max tokens)",
+        "customization": "Personalização das respostas (temperatura)",
         "generate_image": "Geração de imagem",
         "generate_video": "Geração de vídeo",
     }

@@ -8,7 +8,7 @@ export default function useChatActions({ chatId, setChatId, messages, setMessage
   const [controller, setController] = useState(null);
   const messagesEndRef = useRef(null);
 
-  const handleSend = async ({ input, files, model, temperature, maxTokens, isTemperatureLocked }) => {
+  const handleSend = async ({ input, files, model, temperature, isTemperatureLocked }) => {
     if (!input.trim() && files.length === 0) {
       toast.warning("Digite uma mensagem ou anexe um arquivo!");
       return;
@@ -41,7 +41,6 @@ export default function useChatActions({ chatId, setChatId, messages, setMessage
         body.append("chat_id", chatId || "");
         body.append("model", model);
         body.append("temperature", isTemperatureLocked ? 1 : temperature);
-        body.append("max_tokens", maxTokens);
         userFiles.forEach((f) => body.append("files", f));
       } else {
         body = JSON.stringify({
@@ -49,7 +48,6 @@ export default function useChatActions({ chatId, setChatId, messages, setMessage
           chat_id: chatId,
           model,
           temperature: isTemperatureLocked ? 1 : temperature,
-          max_tokens: maxTokens,
         });
       }
 

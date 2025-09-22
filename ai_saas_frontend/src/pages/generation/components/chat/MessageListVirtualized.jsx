@@ -8,7 +8,7 @@ function MessageListVirtualized({ messages, height }) {
       style={{ height, width: "100%" }}
       totalCount={messages.length}
       itemContent={(index) => (
-        <div className="px-2">
+        <div className="px-2 py-1">
           <MessageBubble msg={messages[index]} />
         </div>
       )}

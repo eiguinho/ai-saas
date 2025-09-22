@@ -10,6 +10,7 @@ import useChats from "../hooks/useChats";
 import useChatActions from "../hooks/useChatActions";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
+import GeneratedFiles from "../components/chat/GeneratedFiles";
 
 function TextGeneration() {
   const { user } = useAuth();
@@ -17,10 +18,10 @@ function TextGeneration() {
   const [input, setInput] = useState("");
   const [model, setModel] = useState("gpt-4o");
   const [temperature, setTemperature] = useState(0.7);
-  const [maxTokens, setMaxTokens] = useState(1000);
   const [files, setFiles] = useState([]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mainSidebarCollapsed, setMainSidebarCollapsed] = useState(true);
+  const [imagesOpen, setImagesOpen] = useState(false);
 
   const isTemperatureLocked = model.startsWith("o") || model.startsWith("gpt-5");
   const currentModelObj = TEXT_MODELS.find((m) => m.value === model);
@@ -62,6 +63,7 @@ function TextGeneration() {
             loadChat={loadChat}
             createNewChat={createNewChat}
             updateChatList={updateChatList}
+            setImagesOpen={setImagesOpen}
           />
         </div>
 
@@ -73,49 +75,65 @@ function TextGeneration() {
           {sidebarCollapsed ? <ChevronRight className="w-5 h-5 text-blue-500" /> : <ChevronLeft className="w-5 h-5 text-blue-500" />}
         </button>
 
-        <div className="flex-1 flex flex-col h-full p-6 transition-all duration-300" style={{ marginLeft: sidebarCollapsed ? "0" : "18rem" }}>
-          {messages.length === 0 ? (
+        <div
+          className="flex-1 flex flex-col h-full p-6 transition-all duration-300"
+          style={{ marginLeft: sidebarCollapsed ? "0" : "18rem" }}
+        >
+          {imagesOpen && (
+            <GeneratedFiles
+              open={imagesOpen}
+              onClose={() => setImagesOpen(false)}
+            />
+          )}
+
+          {!imagesOpen && messages.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center">
               <h2 className="text-4xl font-bold mt-12 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-theme-dark)]">
                 Olá, como posso ajudar hoje?
               </h2>
-              <p className="text-gray-500 text-lg mt-4">Escolha diferentes modelos e teste novas ideias</p>
+              <p className="text-gray-500 text-lg mt-4">
+                Escolha diferentes modelos e teste novas ideias
+              </p>
             </div>
           ) : (
-            <MessageListVirtualized
-              messages={messages}
-              height={window.innerHeight - 180}
-              width="100%"
-              className="py-4 px-2"
-            />
+            !imagesOpen && (
+              <MessageListVirtualized
+                messages={messages}
+                height={window.innerHeight - 180}
+                width="100%"
+                className="py-4 px-2"
+              />
+            )
           )}
 
-          <div className="mt-6 flex flex-col gap-4 rounded-3xl shadow-xl p-6 border border-gray-200 bg-white">
-            <ChatInput 
-              input={input} 
-              setInput={setInput} 
-              handleSend={() => {
-                handleSend({ input, files, model, temperature, maxTokens, isTemperatureLocked });
-                setInput("");
-                setFiles([]);
-              }} 
-              handleStop={handleStop} 
-              loading={loading} 
-              files={files} 
-              setFiles={setFiles} 
-              attachmentsAllowed={attachmentsAllowed} 
-            />
-            <ChatControls
-              model={model}
-              setModel={setModel}
-              temperature={temperature}
-              setTemperature={setTemperature}
-              maxTokens={maxTokens}
-              setMaxTokens={setMaxTokens}
-              isTemperatureLocked={isTemperatureLocked}
-            />
-          </div>
+          {/* Input e controles do chat só aparecem se não estiver na tela de arquivos */}
+          {!imagesOpen && (
+            <div className="mt-2 flex flex-col gap-4 rounded-3xl shadow-xl p-6 border border-gray-200 bg-white">
+              <ChatInput
+                input={input}
+                setInput={setInput}
+                handleSend={() => {
+                  handleSend({ input, files, model, temperature, isTemperatureLocked });
+                  setInput("");
+                  setFiles([]);
+                }}
+                handleStop={handleStop}
+                loading={loading}
+                files={files}
+                setFiles={setFiles}
+                attachmentsAllowed={attachmentsAllowed}
+              />
+              <ChatControls
+                model={model}
+                setModel={setModel}
+                temperature={temperature}
+                setTemperature={setTemperature}
+                isTemperatureLocked={isTemperatureLocked}
+              />
+            </div>
+          )}
         </div>
+
       </div>
     </Layout>
   );

@@ -2,6 +2,7 @@ import React from "react";
 import TypingIndicator from "./TypingIndicator";
 import MessageContent from "./MessageContent";
 import { chatRoutes } from "../../../../services/apiRoutes";
+import { Download } from "lucide-react";
 
 function MessageBubble({ msg }) {
   const isUser = msg.role === "user";
@@ -10,6 +11,25 @@ function MessageBubble({ msg }) {
   const truncateText = (text, max = 30) => {
     if (!text) return "";
     return text.length > max ? text.substring(0, max) + "..." : text;
+  };
+
+  // Função para baixar imagem com nome personalizado
+  const handleDownload = (url) => {
+    fetch(url)
+      .then((res) => res.blob())
+      .then((blob) => {
+        const a = document.createElement("a");
+        const filename = `Artificiall Image - ${new Date()
+          .toISOString()
+          .slice(0, 19)
+          .replace("T", "_")
+          .replace(/:/g, "-")}.png`;
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      })
+      .catch(() => alert("Falha ao baixar a imagem"));
   };
 
   return (
@@ -26,7 +46,7 @@ function MessageBubble({ msg }) {
         <>
           {content && (
             <div className="markdown">
-              <MessageContent content={content} isUserMessage={msg.role === "user"} />
+              <MessageContent content={content} isUserMessage={isUser} />
             </div>
           )}
           {attachments && attachments.length > 0 && (
@@ -72,16 +92,26 @@ function MessageBubble({ msg }) {
                 }
 
                 return (
-                  <img
-                    key={i}
-                    src={attUrl}
-                    alt={att.name || "imagem"}
-                    className={
-                      attachments.length === 1
-                        ? "rounded-md object-contain max-w-[400px] max-h-[250px]"
-                        : "rounded-md object-cover w-28 h-28"
-                    }
-                  />
+                  <div className="relative" key={i}>
+                    <img
+                      src={attUrl}
+                      alt={att.name || "imagem"}
+                      className={
+                        attachments.length === 1
+                          ? "rounded-md object-contain max-w-[400px] max-h-[250px]"
+                          : "rounded-md object-cover w-28 h-28"
+                      }
+                    />
+                    {!isUser && (
+                      <button
+                        onClick={() => handleDownload(attUrl)}
+                        className="absolute top-2 right-2 bg-gray-800 text-white p-1 rounded-lg hover:bg-gray-700 transition cursor-pointer"
+                        title="Baixar imagem"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 );
               })}
             </div>

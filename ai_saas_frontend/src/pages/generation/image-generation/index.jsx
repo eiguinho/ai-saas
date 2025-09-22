@@ -1,20 +1,91 @@
 import { useState } from 'react';
 import styles from './image.module.css';
 import Layout from "../../../components/layout/Layout";
-import { Send, Loader2, Image as ImageIcon, Settings } from 'lucide-react';
+import Select from "react-select";
+import { Download, Send, Loader2, Image as ImageIcon, Settings } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { aiRoutes, generatedContentRoutes } from '../../../services/apiRoutes'; // ajuste conforme sua estrutura
+import { apiFetch } from '../../../services/apiService';
+import { IMAGE_MODELS, IMAGE_STYLES, IMAGE_RATIOS, IMAGE_QUALITIES } from '../../../utils/constants';
+
+const selectStyles = {
+    control: (base) => ({
+      ...base,
+      borderRadius: 12,
+      padding: "2px 4px",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+      border: "1px solid #d1d5db",
+      cursor: "pointer",
+    }),
+    singleValue: (base) => ({ ...base, color: "#111827", fontWeight: "400" }),
+    menu: (base) => ({ ...base, borderRadius: 12, overflow: "hidden" }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isFocused ? "rgba(59, 130, 246,0.2)" : "#fff",
+      color: state.isFocused ? "#3b82f6" : "#111827",
+      cursor: "pointer",
+    }),
+  };
 
 function ImageGeneration() {
   const [prompt, setPrompt] = useState("");
+  const [model, setModel] = useState("gpt-image-1");
+  const [style, setStyle] = useState("auto");
+  const [ratio, setRatio] = useState("1024x1024");
   const [loading, setLoading] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState(null);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!prompt.trim()) {
       toast.warning("Digite um prompt antes de gerar!");
       return;
     }
-    // Aviso de funcionalidade ainda não implementada
-    toast.warning("Geração de imagem ainda será implementada!");
+
+    setLoading(true);
+    setGeneratedImage(null);
+
+    try {
+      const res = await apiFetch(aiRoutes.generateImage, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, model, style, ratio }),
+      });
+
+      if (res.content?.id) {
+        const imgRes = await apiFetch(generatedContentRoutes.getImage(res.content.id), {
+          method: "GET",
+        });
+        const blob = await imgRes.blob();
+        setGeneratedImage(URL.createObjectURL(blob));
+      }
+
+      toast.success("Imagem gerada com sucesso!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao gerar imagem!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownload = () => {
+    if (!generatedImage) return;
+
+    fetch(generatedImage)
+      .then((res) => res.blob())
+      .then((blob) => {
+        const a = document.createElement("a");
+        const filename = `Artificiall Image - ${new Date()
+          .toISOString()
+          .slice(0, 19)
+          .replace("T", "_")
+          .replace(/:/g, "-")}.png`;
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      })
+      .catch(() => toast.error("Falha ao baixar a imagem"));
   };
 
   return (
@@ -31,24 +102,38 @@ function ImageGeneration() {
               <Settings className="w-5 h-5 text-black mr-2" />
               <p className={styles.blockSubtitle}>Configurações</p>
             </div>
-            {/* Modelos, estilo e proporção permanecem */}
+            {/* Modelo, estilo, proporção */}
             <div className="flex flex-col mb-2">
               <label htmlFor="model" className={styles.blockTitle}>Modelo</label>
-              <select id="model" className={styles.selectClean} disabled>
-                <option>DALL·E 3</option>
-              </select>
+              <Select
+                value={IMAGE_MODELS.find((m) => m.value === model)}
+                onChange={(s) => setModel(s.value)}
+                options={IMAGE_MODELS}
+                isSearchable={false}
+                styles={selectStyles}
+              />
             </div>
+
             <div className="flex flex-col mb-2">
               <label htmlFor="style" className={styles.blockTitle}>Estilo</label>
-              <select id="style" className={styles.selectClean} disabled>
-                <option>Fotorrealista</option>
-              </select>
+              <Select
+                value={IMAGE_STYLES.find((m) => m.value === style)}
+                onChange={(selected) => setStyle(selected.value)}
+                options={IMAGE_STYLES}
+                isSearchable={false}
+                styles={selectStyles}
+              />
             </div>
+
             <div className="flex flex-col mb-2">
               <label htmlFor="ratio" className={styles.blockTitle}>Proporção</label>
-              <select id="ratio" className={styles.selectClean} disabled>
-                <option>Quadrado (1:1)</option>
-              </select>
+              <Select
+                value={IMAGE_RATIOS.find((r) => r.value === ratio)}
+                onChange={(s) => setRatio(s.value)}
+                options={IMAGE_RATIOS}
+                isSearchable={false}
+                styles={selectStyles}
+              />
             </div>
           </div>
 
@@ -79,10 +164,41 @@ function ImageGeneration() {
         <div className={styles.panelGrid}>
           <div className={`${styles.statCard} flex flex-col flex-1 col-start-2`}>
             <p className={styles.blockSubtitle}>Imagem Gerada</p>
-            <p className={`${styles.statSubtext} text-sm`}>Sua imagem criada pela IA</p>
+            <p className={`${styles.statSubtext} text-sm m-4`}>Sua imagem criada pela IA</p>
             <div className="flex flex-col flex-1 justify-center items-center text-center min-h-[35vh] space-y-2">
-              <ImageIcon className="w-16 h-16 text-gray-300" />
-              <p className="text-gray-500">A imagem gerada aparecerá aqui</p>
+              {generatedImage ? (
+              <div className="flex flex-col items-center space-y-4">
+                <img src={generatedImage} alt="Gerada pela IA" className="max-h-96 rounded-md" />
+                <button
+                  onClick={() => {
+                    fetch(generatedImage)
+                      .then((res) => res.blob())
+                      .then((blob) => {
+                        const a = document.createElement("a");
+                        const filename = `Artificiall Image - ${new Date()
+                          .toISOString()
+                          .slice(0, 19)
+                          .replace("T", "_")
+                          .replace(/:/g, "-")}.png`;
+                        a.href = URL.createObjectURL(blob);
+                        a.download = filename;
+                        a.click();
+                        URL.revokeObjectURL(a.href);
+                      })
+                      .catch(() => toast.error("Falha ao baixar a imagem"));
+                  }}
+                  className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg shadow-md transition"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Baixar Imagem</span>
+                </button>
+              </div>
+            ) : (
+              <>
+                  <ImageIcon className="w-16 h-16 text-gray-300" />
+                  <p className="text-gray-500">A imagem gerada aparecerá aqui</p>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -1,12 +1,15 @@
 from flask import Blueprint, request, jsonify
 from extensions import jwt_required, db
 from models.chat import Chat, ChatMessage, ChatAttachment, SenderType
+from models.generated_content import GeneratedImageContent
+from models.user import User  # <--- corrigido, import do modelo User
 from flask_jwt_extended import get_jwt_identity
 import os, uuid, base64, requests, time
 from datetime import datetime
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from openai import OpenAI
 
 load_dotenv()
 OPENAI_API_KEY = os.getenv("API_KEY")
@@ -35,53 +38,123 @@ def uses_completion_tokens_for_openai(model: str) -> bool:
     return model.startswith("o") or model.startswith("gpt-5")
 
 def supports_vision(model: str) -> bool:
-    return model.startswith("gpt-4o") or model.startswith("o") or model.startswith("gpt-5") or is_gemini_model(model)
+    res = model.startswith("gpt-4o") or model.startswith("o") or model.startswith("gpt-5") or is_gemini_model(model)
+    print(f"[DEBUG] supports_vision({model}) -> {res}")
+    return res
+
+def supports_generate_image(model: str) -> bool:
+    res = model.startswith("gpt-4") or model.startswith("gpt-5")
+    print(f"[DEBUG] supports_image({model}) -> {res}")
+    return res
 
 def to_data_url(path: str, mimetype: str) -> str:
     with open(path, "rb") as f:
         return f"data:{mimetype};base64,{base64.b64encode(f.read()).decode('utf-8')}"
+    
+def generate_system_message(model: str):
+    print(f"[DEBUG] generate_system_message chamado com model={model}")
+    if supports_generate_image(model):
+        print(f"[DEBUG] caiu no if")
+        return {
+            "role": "system",
+            "content": (
+                "Você é uma IA de chat da plataforma Artificiall.\n"
+                "📌 Funções disponíveis:\n"
+                "- Geração de texto: todos os modelos.\n"
+                "- Geração de imagens: apenas modelos GPT.\n"
+                "⚠️ Importante:\n"
+                f"- O Modelo atual PERMITE GERAR: {model}\n"
+                "- Você pode gerar imagens quando o usuário pedir.\n"
+                "- Não gere imagens automaticamente se o usuário não pediu.\n"
+                "- Sempre use o modelo atual para decidir o que é possível."
+            )
+        }
+    else:
+        print(f"[DEBUG] caiu no else")
+        return {
+            "role": "system",
+            "content": (
+                "Você é uma IA de chat da plataforma Artificiall.\n"
+                "📌 Funções disponíveis:\n"
+                "- Geração de texto: todos os modelos.\n"
+                "- Geração de imagens: **não disponível** neste modelo.\n"
+                "- Se o usuário pedir para gerar imagens, responda educadamente que o modelo atual selecionado não suporta."
+            )
+        }
 
 def build_messages_for_openai(session_messages, model: str):
     messages = []
+
+    if model != "o1-mini":
+        system_msg = generate_system_message(model)
+        messages.append(system_msg)
+        print("[DEBUG] Mensagens após system:", messages)
+    else:
+        print("[DEBUG] Modelo o1-mini detectado, pulando system message")
+
     vision_ok = supports_vision(model)
+
     for m in session_messages:
         role = m.get("role") if isinstance(m, dict) else getattr(m, "role", "user")
         text = m.get("content") if isinstance(m, dict) else getattr(m, "content", "")
         attachments = []
+
         if hasattr(m, "attachments") and m.attachments is not None:
             attachments = [a.to_dict() for a in m.attachments]
         elif isinstance(m, dict):
             attachments = m.get("attachments", [])
 
         if not attachments:
-            messages.append({"role": role, "content": text})
+            msg = {"role": role, "content": text}
+            messages.append(msg)
+            print(f"[DEBUG] Mensagem sem anexos adicionada: {msg}")
             continue
 
         if vision_ok:
             parts = [{"type": "text", "text": text}] if text.strip() else []
             non_images = []
+
             for att in attachments:
                 mimetype = att["mimetype"] if isinstance(att, dict) else att.mimetype
                 path = att["path"] if isinstance(att, dict) else att.path
                 name = att.get("name") if isinstance(att, dict) else att.name
+
                 if mimetype.startswith("image/") and os.path.exists(path):
-                    parts.append({"type": "image_url", "image_url": {"url": to_data_url(path, mimetype)}})
+                    if role == "assistant":
+                        print(f"[DEBUG] Pulando carregamento de imagem do assistant: {name}")
+                    else:
+                        img_part = {"type": "image_url", "image_url": {"url": to_data_url(path, mimetype)}}
+                        parts.append(img_part)
+                        print(f"[DEBUG] Imagem anexada adicionada: {img_part}")
                 elif mimetype == "application/pdf" and os.path.exists(path):
                     with open(path, "rb") as f:
                         file_b64 = base64.b64encode(f.read()).decode("utf-8")
-                    parts.append({
+                    pdf_part = {
                         "type": "file",
                         "file": {"filename": name, "file_data": f"data:{mimetype};base64,{file_b64}"}
-                    })
+                    }
+                    parts.append(pdf_part)
+                    print(f"[DEBUG] PDF anexado adicionado: {pdf_part}")
                 else:
                     non_images.append(name)
+
             if non_images:
-                parts.append({"type": "text", "text": f"Arquivos anexados (não-imagem): {', '.join(non_images)}"})
-            messages.append({"role": role, "content": parts})
+                ni_part = {"type": "text", "text": f"Arquivos anexados (não-imagem): {', '.join(non_images)}"}
+                parts.append(ni_part)
+                print(f"[DEBUG] Anexos não-imagem adicionados: {ni_part}")
+
+            msg = {"role": role, "content": parts}
+            messages.append(msg)
+            print(f"[DEBUG] Mensagem com suporte a visão adicionada: {msg}")
+
         else:
             names = ", ".join([a["name"] if isinstance(a, dict) else a.name for a in attachments])
             merge_text = (text + "\n\n" if text else "") + (f"[Anexos]: {names}" if names else text)
-            messages.append({"role": role, "content": merge_text})
+            msg = {"role": role, "content": merge_text}
+            messages.append(msg)
+            print(f"[DEBUG] Mensagem sem visão adicionada: {msg}")
+
+    print("[DEBUG] Lista final de mensagens construída:", messages)
     return messages
 
 def build_messages_for_openrouter(session_messages, model: str):
@@ -120,6 +193,7 @@ def generate_text():
     try:
         ct = request.content_type or ""
         files_to_save = []
+        uploaded_images = []
 
         print("\n=== NOVA REQUISIÇÃO ===")
         
@@ -130,10 +204,6 @@ def generate_text():
                 temperature = float(request.form.get("temperature", 0.7))
             except Exception:
                 temperature = 0.7
-            try:
-                max_tokens = int(request.form.get("max_tokens", 1000))
-            except Exception:
-                max_tokens = 1000
             chat_id = request.form.get("chat_id")
             files = request.files.getlist("files") or []
 
@@ -161,10 +231,6 @@ def generate_text():
                 temperature = float(data.get("temperature", 0.7))
             except Exception:
                 temperature = 0.7
-            try:
-                max_tokens = int(data.get("max_tokens", 1000))
-            except Exception:
-                max_tokens = 1000
             chat_id = data.get("chat_id")
 
         print(f"[INFO] Usuário: {get_jwt_identity()}, Chat ID: {chat_id}, Modelo: {model}, Input: {user_input[:50]}")
@@ -199,7 +265,7 @@ def generate_text():
                     print(f"[WARN] Falha ao gerar título do chat: {e}")
                     chat_title = "Novo Chat"
 
-            chat = Chat(user_id=user_id, title=chat_title)
+            chat = Chat(user_id=user_id, title=chat_title, supports_vision=supports_vision(model))
             db.session.add(chat)
             db.session.commit()
             print(f"[INFO] Novo chat criado: {chat.id}")
@@ -256,6 +322,14 @@ def generate_text():
                     print(f"[INFO] Inicializando chat Gemini para chat_id {chat.id}")
                     gemini_chat = client_gemini.chats.create(model=model)
 
+                    system_notice = (
+                        f"⚠️ Aviso MUITO importante: o modelo atual é {model}.\n"
+                        "Este modelo Gemini NÃO SUPORTA geração de imagens.\n"
+                        "Se o usuário pedir imagens, responda educadamente que o modelo NÃO consegue gerar NESSE MODELO SELECIONADO.\n"
+                        "Continue apenas com respostas de texto por enquanto."
+                    )
+                    parts.append(system_notice)
+
                     # 🔹 Carregar histórico completo do chat
                     history = ChatMessage.query.filter_by(chat_id=chat.id).order_by(ChatMessage.created_at).all()
                     print(f"[INFO] Histórico completo carregado: {len(history)} mensagens")
@@ -289,6 +363,7 @@ def generate_text():
 
                     # 🔹 Enviar tudo de uma vez para Gemini
                     print(f"[INFO] Enviando batch para Gemini com {len(parts)} partes")
+                    print(f"oia a parte ai: {parts}")
                     response = send_with_retry_gemini(gemini_chat, parts)
                     generated_text = getattr(response, "text", "[Erro ao gerar resposta da IA]")
 
@@ -296,16 +371,12 @@ def generate_text():
                     print(f"[ERROR] Falha ao inicializar chat Gemini: {e}")
                     generated_text = "[Erro ao gerar resposta da IA]"
 
-
-
-
             elif is_openrouter_model(model):
                 endpoint = "https://openrouter.ai/api/v1/chat/completions"
                 headers = {"Authorization": f"Bearer {OPENROUTER_API_KEY}", "Content-Type": "application/json"}
                 body = {
                     "model": model,
                     "messages": build_messages_for_openrouter(session_messages, model),
-                    "max_tokens": max_tokens,
                     "temperature": temperature
                 }
 
@@ -324,22 +395,63 @@ def generate_text():
                 endpoint = "https://api.openai.com/v1/chat/completions"
                 headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
                 body = {"model": model, "messages": build_messages_for_openai(session_messages, model)}
-                if uses_completion_tokens_for_openai(model):
-                    body["max_completion_tokens"] = max_tokens
-                else:
-                    body["max_tokens"] = max_tokens
+                if not uses_completion_tokens_for_openai(model):
                     body["temperature"] = temperature
 
+                # Enviar requisição com retry
+                # 🔹 Envio para IA (OpenAI)
                 try:
                     response = make_request_with_retry(endpoint, headers, body, max_retries=5, backoff=3)
+
+                    # Extrair texto
                     try:
                         generated_text = response.json()["choices"][0]["message"]["content"]
                     except Exception:
                         print(f"[WARN] Resposta OpenAI não é JSON:\n{response.text[:1000]}")
                         generated_text = "[Erro ao gerar resposta da IA]"
+
+                    # 🔹 Se o modelo suporta visão, gerar imagem separada e salvar
+                    
+                    if supports_generate_image(model):
+                        try:
+                            # Chamada de geração de imagem via tool
+                            client = OpenAI(api_key=OPENAI_API_KEY)
+                            img_response = client.responses.create(
+                                model=model,
+                                input=[{"role": "user", "content": user_input}],
+                                tools=[{"type": "image_generation"}]
+                            )
+
+                            image_outputs = [
+                                o.result for o in getattr(img_response, "output", [])
+                                if getattr(o, "type", "") == "image_generation_call"
+                            ]
+
+                            for idx, img_base64 in enumerate(image_outputs):
+                                image_path = os.path.join(UPLOAD_DIR, f"ai_image_{uuid.uuid4().hex}.png")
+                                with open(image_path, "wb") as f:
+                                    f.write(base64.b64decode(img_base64))
+                                uploaded_images.append({
+                                    "name": f"ai_image_{idx}.png",
+                                    "path": image_path,
+                                    "url": f"/api/uploads/{os.path.basename(image_path)}"
+                                })
+                                print(f"[INFO] IA gerou imagem {uploaded_images[-1]['name']} salva em {image_path}")
+
+                        except Exception as e:
+                            if "moderation_blocked" in str(e):
+                                print("[WARN] Geração de imagem bloqueada pelo sistema de moderação da OpenAI")
+                                generated_text += "\n⚠️ A imagem não pôde ser gerada porque os termos utilizados não passaram pelo sistema de segurança."
+                            else:
+                                print(f"[WARN] Falha ao gerar imagem pelo GPT: {e}")
+
+                    print(f"[INFO] Texto gerado: {generated_text[:200]}")
+
                 except Exception as oe:
                     print(f"[ERROR] Falha na chamada OpenAI: {oe}")
                     generated_text = "[Erro ao gerar resposta da IA]"
+                    uploaded_images = []
+
 
         except Exception as e:
             print(f"[ERROR] Falha geral ao gerar texto IA: {e}")
@@ -348,32 +460,185 @@ def generate_text():
 
         # 🔹 Salvar mensagem da IA
         try:
+            safe_text = generated_text if not uploaded_images else ""
+            print(f"opa -> {safe_text}")
             ai_msg = ChatMessage(
                 chat_id=chat.id,
                 role=SenderType.AI.value,
-                content=generated_text,
+                content=safe_text,
                 model_used=model,
                 created_at=datetime.utcnow()
             )
             db.session.add(ai_msg)
             db.session.commit()
             print(f"[MSG AI] Chat {chat.id} - Mensagem gerada: {generated_text[:50]} (ID {ai_msg.id})")
+
+            for img in uploaded_images:
+                try:
+                    attachment_obj = ChatAttachment(
+                        message_id=ai_msg.id,
+                        name=img["name"],
+                        path=img["path"],
+                        mimetype="image/png",
+                        size_bytes=os.path.getsize(img["path"]),
+                        created_at=datetime.utcnow()
+                    )
+                    db.session.add(attachment_obj)
+                    db.session.commit()
+                    img["id"] = attachment_obj.id
+                    img["mimetype"] = attachment_obj.mimetype
+                    img["size_bytes"] = attachment_obj.size_bytes
+                    img["url"] = f"/api/chats/attachments/{attachment_obj.id}"
+                    print(f"[ATTACHMENT AI] Imagem {attachment_obj.name} salva (ID {attachment_obj.id})")
+                    try:
+                        generated_content = GeneratedImageContent(
+                            user_id=chat.user_id,
+                            prompt=user_input,
+                            model_used=model,
+                            content_data=None,   # se quiser guardar JSON/metadata
+                            file_path=img["path"],
+                            style=None,          # se tiver suporte a estilos, preencher aqui
+                            ratio=None           # idem para proporção
+                        )
+                        db.session.add(generated_content)
+                        db.session.commit()
+                        print(f"[GENERATED CONTENT] Imagem salva em GeneratedImageContent (ID {generated_content.id})")
+                    except Exception as ge:
+                        db.session.rollback()
+                        print(f"[WARN] Falha ao salvar em GeneratedContent: {ge}")
+                except Exception as ae:
+                    db.session.rollback()
+                    print(f"[WARN] Falha ao salvar attachment de IA {img['name']}: {ae}")
+
         except Exception as ae:
             db.session.rollback()
             print(f"[ERROR] Falha ao salvar mensagem AI: {ae}")
+        
+        response_text = "" if uploaded_images else generated_text
+        print(f"[Mensagem gerada] {generated_text}")
+        print(f"[Response gerado] {response}")
 
         return jsonify({
             "chat_id": chat.id,
             "chat_title": chat.title,
             "messages": [m.to_dict() for m in history] + [ai_msg.to_dict()] if 'ai_msg' in locals() else [m.to_dict() for m in history],
-            "generated_text": generated_text,
+            "generated_text": response_text,
             "model_used": model,
             "temperature": None if uses_completion_tokens_for_openai(model) else temperature,
-            "max_tokens": max_tokens,
-            "uploaded_files": uploaded_files
+            "uploaded_files": uploaded_files + uploaded_images
         }), 200
 
     except Exception as e:
         db.session.rollback()
         print(f"[EXCEPTION] {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+# Mapeia proporção para tamanho da imagem baseado no modelo
+def map_size(model, ratio):
+    size_map = {
+        "1024x1024": "1024x1024",
+        "1536x1024": "1536x1024",  # landscape padrão
+        "1024x1536": "1024x1536",  # portrait padrão
+    }
+    if model in ["dall-e-2", "dall-e-3"]:
+        size_map = {
+            "1024x1024": "1024x1024",
+            "1536x1024": "1792x1024",  # landscape -> arredonda pro mais próximo válido
+            "1024x1536": "1024x1792",  # portrait -> arredonda pro mais próximo válido
+        }
+    return size_map.get(ratio, "1024x1024")
+
+@ai_generation_api.route("/generate-image", methods=["POST"])
+@jwt_required()
+def generate_image():
+    """
+    Gera uma imagem usando OpenAI e salva como GeneratedImageContent
+    """
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    if not user:
+        return jsonify({"error": "Usuário inválido"}), 403
+
+    data = request.get_json() or {}
+    print("📥 Payload recebido:", data)  # <-- debug
+    prompt = data.get("prompt")
+    model = data.get("model", "gpt-image-1")  # modelo enviado do frontend
+    style = data.get("style", "auto")
+    print("style")
+    print(style)
+    ratio = data.get("ratio", "1024:1024")  # ex: "1:1", "16:9", "9:16"
+    size = map_size(model, ratio)
+    quality = data.get("quality", "auto")
+
+    if not prompt:
+        return jsonify({"error": "Prompt é obrigatório"}), 400
+    
+    if style != "auto":
+        final_prompt = f"O estilo da imagem deve ser: {style}. {prompt}"
+    else:
+        final_prompt = prompt
+    
+    
+
+    client = OpenAI(api_key=OPENAI_API_KEY)
+    print("opa")
+    print(final_prompt)
+    print(style)
+    print(size)
+    try:
+        kwargs = {
+            "model": model,
+            "prompt": final_prompt,
+            "n": 1,
+            "size": size
+        }
+        if quality and quality != "auto":
+            kwargs["quality"] = quality
+
+        response = client.images.generate(**kwargs)
+
+        if hasattr(response.data[0], "b64_json") and response.data[0].b64_json:
+            image_base64 = response.data[0].b64_json
+            image_data = base64.b64decode(image_base64)
+        elif hasattr(response.data[0], "url") and response.data[0].url:
+            # baixa a imagem da URL retornada
+            import requests
+            img_res = requests.get(response.data[0].url)
+            img_res.raise_for_status()
+            image_data = img_res.content
+        else:
+            return jsonify({"error": "Resposta da API não contém imagem válida"}), 500
+
+        # Salva a imagem no servidor
+        filename = f"{uuid.uuid4()}.png"
+        save_path = os.path.join(UPLOAD_DIR, filename)
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        with open(save_path, "wb") as f:
+            f.write(image_data)
+
+        # Salva no banco
+        generated = GeneratedImageContent(
+            user_id=user.id,
+            prompt=prompt,
+            model_used=model,
+            file_path=save_path,
+            style=style,
+            ratio=size
+        )
+        db.session.add(generated)
+        db.session.commit()
+
+        return jsonify({
+            "message": "Imagem gerada com sucesso",
+            "content": generated.to_dict()
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        error_msg = str(e)
+        if "content_policy_violation" in error_msg:
+            return jsonify({
+                "error": "Geração bloqueada pelo nosso sistema de segurança."
+            }), 400
+
+        return jsonify({"error": error_msg}), 500

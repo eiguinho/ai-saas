@@ -1,6 +1,37 @@
+import { useEffect, useState } from "react";
 import { FileText, X } from "lucide-react";
+import { apiFetch } from "../../../services/apiService";
+import { generatedContentRoutes } from "../../../services/apiRoutes";
 
-export default function SelectedContentsSidebar({ selectedContents, onRemove, baseUrl }) {
+export default function SelectedContentsSidebar({ selectedContents, onRemove }) {
+  const [imageUrls, setImageUrls] = useState({});
+
+  useEffect(() => {
+    // Limpa URLs antigas para evitar vazamento de memória
+    return () => {
+      Object.values(imageUrls).forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
+
+  useEffect(() => {
+    // Para cada conteúdo de imagem, busca a URL protegida
+    selectedContents.forEach((c) => {
+      if (c.content_type === "image" && c.id && !imageUrls[c.id]) {
+        const fetchImage = async () => {
+          try {
+            const res = await apiFetch(generatedContentRoutes.getImage(c.id));
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            setImageUrls((prev) => ({ ...prev, [c.id]: url }));
+          } catch (err) {
+            console.error("Erro ao carregar imagem:", err);
+          }
+        };
+        fetchImage();
+      }
+    });
+  }, [selectedContents]);
+
   return (
     <aside className="relative w-72 p-4 bg-white rounded-lg shadow overflow-y-auto pb-20 h-[60vh]">
       <h2 className="font-semibold">Conteúdos vinculados</h2>
@@ -17,11 +48,17 @@ export default function SelectedContentsSidebar({ selectedContents, onRemove, ba
             >
               {/* Preview */}
               {c.content_type === "image" ? (
-                <img
-                  src={`${baseUrl}${c.file_path}`}
-                  alt="preview"
-                  className="w-12 h-12 object-cover rounded"
-                />
+                imageUrls[c.id] ? (
+                  <img
+                    src={imageUrls[c.id]}
+                    alt={c.prompt || "Imagem gerada"}
+                    className="w-12 h-12 object-cover rounded"
+                  />
+                ) : (
+                  <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">
+                    Carregando...
+                  </div>
+                )
               ) : (
                 <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">
                   {c.content_type.toUpperCase()}
@@ -33,9 +70,7 @@ export default function SelectedContentsSidebar({ selectedContents, onRemove, ba
                 <p className="text-sm text-gray-700 line-clamp-1">
                   {c.prompt || "Sem título"}
                 </p>
-                <span className="text-xs text-gray-400">
-                  {c.model_used}
-                </span>
+                <span className="text-xs text-gray-400">{c.model_used}</span>
               </div>
 
               {/* Remover */}

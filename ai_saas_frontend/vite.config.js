@@ -14,9 +14,9 @@ export default defineConfig({
   strictPort: true,
   proxy: {
       "/api": {
-        target: "https://api.artificiall.ai",
+        target: "http://127.0.0.1:8000",
         changeOrigin: true,
-        secure: true, // se o backend usa https
+        secure: false, // se o backend usa https
       },
   },
 }

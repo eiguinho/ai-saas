@@ -17,10 +17,12 @@ export const TEXT_MODELS = [
 ];
 
 export const IMAGE_MODELS = [
+  { value: "gpt-image-1", label: "GPT Image 1" },
+  { value: "dall-e-2", label: "DALL·E 2" },
   { value: "dall-e-3", label: "DALL·E 3" },
-  { value: "midjourney", label: "Midjourney" },
-  { value: "stable-diffusion", label: "Stable Diffusion" },
-  { value: "adobe-firefly", label: "Adobe Firefly" },
+ // { value: "midjourney", label: "Midjourney" },
+  //{ value: "stable-diffusion", label: "Stable Diffusion" },
+  //{ value: "adobe-firefly", label: "Adobe Firefly" },
 ];
 
 export const VIDEO_MODELS = [
@@ -31,6 +33,7 @@ export const VIDEO_MODELS = [
 ];
 
 export const IMAGE_STYLES = [
+  { value: "auto", label: "Automático" },
   { value: "realist", label: "Fotorrealista" },
   { value: "artist", label: "Artístico" },
   { value: "cartoon", label: "Cartoon" },
@@ -47,11 +50,16 @@ export const VIDEO_STYLES = [
 ];
 
 export const IMAGE_RATIOS = [
-  { value: "square", label: "Quadrado (1:1)" },
-  { value: "landscape", label: "Paisagem (16:9)" },
-  { value: "portrait", label: "Retrato (9:16)" },
-  { value: "classic", label: "Clássico (4:3)" },
-  { value: "smallportrait", label: "Retrato (3:4)" },
+  { value: "1024x1024", label: "Quadrado" },
+  { value: "1536x1024", label: "Paisagem" },
+  { value: "1024x1536", label: "Retrato" },
+];
+
+export const IMAGE_QUALITIES = [
+  { value: "auto", label: "Automático" },
+  { value: "low", label: "Baixa" },
+  { value: "medium", label: "Média" },
+  { value: "high", label: "Alta" },
 ];
 
 export const TAB_TYPES = [

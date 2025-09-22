@@ -3,7 +3,7 @@ import { Plus, Search, File, FolderMinus, Folder, MessageSquare } from "lucide-r
 import ChatItem from "./ChatItem";
 import useChatSearch from "../../hooks/useChatSearch";
 
-export default function Sidebar({ chats, chatId, loadChat, createNewChat, updateChatList }) {
+export default function Sidebar({ chats, chatId, loadChat, createNewChat, updateChatList, setImagesOpen }) {
   const [showArchived, setShowArchived] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const searchRef = useRef(null);
@@ -25,6 +25,7 @@ export default function Sidebar({ chats, chatId, loadChat, createNewChat, update
 
   const handleSearchClick = (chat) => {
     loadChat(chat.id);
+    setImagesOpen(false);
     setSearchOpen(false);
   };
 
@@ -36,7 +37,10 @@ export default function Sidebar({ chats, chatId, loadChat, createNewChat, update
         <div className="flex justify-between items-start">
           {/* Novo Chat */}
           <button
-            onClick={createNewChat}
+            onClick={() => {
+              createNewChat();
+              setImagesOpen(false);
+            }}
             className="flex items-center gap-2 px-4 py-2 mt-2 rounded-xl bg-[var(--color-primary)] text-white shadow-sm hover:brightness-105 transition"
           >
             <Plus className="w-4 h-4" />
@@ -44,9 +48,12 @@ export default function Sidebar({ chats, chatId, loadChat, createNewChat, update
           </button>
 
           {/* Arquivos */}
-          <button className="flex flex-col items-center px-3 py-2 rounded-xl bg-gray-50 text-gray-900 shadow-sm hover:brightness-105 transition">
+          <button
+            onClick={() => setImagesOpen(true)} // controla o state no componente pai
+            className="flex flex-col items-center px-3 py-2 rounded-xl bg-gray-50 text-gray-900 shadow-sm hover:brightness-105 transition"
+          >
             <File className="w-5 h-5 mb-1" />
-            <span className="text-xs font-medium">Arquivos</span>
+            <span className="text-xs font-medium">Gerações</span>
           </button>
         </div>
 
@@ -113,7 +120,10 @@ export default function Sidebar({ chats, chatId, loadChat, createNewChat, update
             key={c.id}
             chat={c}
             selected={chatId === c.id}
-            loadChat={loadChat}
+            loadChat={() => {
+              loadChat(c.id);
+              setImagesOpen(false); // fechar as gerações
+            }}
             onUpdateList={updateChatList}
           />
         ))}
@@ -136,7 +146,10 @@ export default function Sidebar({ chats, chatId, loadChat, createNewChat, update
                     key={c.id}
                     chat={c}
                     selected={chatId === c.id}
-                    loadChat={loadChat}
+                    loadChat={() => {
+                      loadChat(c.id);
+                      setImagesOpen(false); // fechar as gerações
+                    }}
                     onUpdateList={updateChatList}
                     archived
                   />

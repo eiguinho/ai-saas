@@ -22,6 +22,7 @@ class Chat(db.Model):
     default_model = db.Column(db.String(120), nullable=True)
     provider = db.Column(db.String(50), nullable=True)
     archived = db.Column(db.Boolean, default=False)
+    supports_vision = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, send_file
 from extensions import db, jwt_required, get_jwt_identity
 from models import (
     GeneratedContent,
@@ -7,8 +7,14 @@ from models import (
     GeneratedVideoContent,
     User
 )
+import os
 
 generated_content_api = Blueprint("generated_content_api", __name__)
+
+@generated_content_api.before_request
+def skip_jwt_for_options():
+    if request.method == "OPTIONS":
+        return "", 200
 
 # Criar conteúdo gerado
 @generated_content_api.route("/", methods=["POST"])
@@ -151,3 +157,26 @@ def delete_batch_contents():
 
     db.session.commit()
     return jsonify({"message": f"{len(contents)} conteúdos deletados com sucesso"}), 200
+
+@generated_content_api.route("/images/<string:content_id>", methods=["GET"])
+@jwt_required()
+def get_generated_image(content_id):
+    """
+    Retorna a imagem gerada apenas se ela pertencer ao usuário logado.
+    """
+    current_user_id = get_jwt_identity()
+
+    content = GeneratedImageContent.query.filter_by(id=content_id, user_id=current_user_id).first()
+
+    if not content:
+        return jsonify({"error": "Imagem não encontrada ou acesso negado"}), 404
+
+    if not content.file_path or not os.path.exists(content.file_path):
+        return jsonify({"error": "Arquivo da imagem não encontrado no servidor"}), 404
+
+    return send_file(
+        content.file_path,
+        mimetype="image/png",
+        as_attachment=False,
+        download_name=os.path.basename(content.file_path)
+    )
