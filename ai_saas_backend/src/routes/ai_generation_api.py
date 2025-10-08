@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from openai import OpenAI
+from io import BytesIO
 
 load_dotenv()
 OPENAI_API_KEY = os.getenv("API_KEY")
@@ -548,26 +549,29 @@ def map_size(model, ratio):
         }
     return size_map.get(ratio, "1024x1024")
 
+def map_aspectratio_gemini(ratio):
+    ratio_map = {
+        "1024x1024": "1:1",
+        "1536x1024": "16:9",
+        "1024x1536": "9:16",
+    }
+    return {
+        "aspectRatio": ratio_map.get(ratio, "1:1"),
+    }
+
 @ai_generation_api.route("/generate-image", methods=["POST"])
 @jwt_required()
 def generate_image():
-    """
-    Gera uma imagem usando OpenAI e salva como GeneratedImageContent
-    """
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
     if not user:
         return jsonify({"error": "Usuário inválido"}), 403
 
     data = request.get_json() or {}
-    print("📥 Payload recebido:", data)  # <-- debug
     prompt = data.get("prompt")
     model = data.get("model", "gpt-image-1")  # modelo enviado do frontend
     style = data.get("style", "auto")
-    print("style")
-    print(style)
     ratio = data.get("ratio", "1024:1024")  # ex: "1:1", "16:9", "9:16"
-    size = map_size(model, ratio)
     quality = data.get("quality", "auto")
 
     if not prompt:
@@ -577,45 +581,50 @@ def generate_image():
         final_prompt = f"O estilo da imagem deve ser: {style}. {prompt}"
     else:
         final_prompt = prompt
-    
-    
 
-    client = OpenAI(api_key=OPENAI_API_KEY)
-    print("opa")
-    print(final_prompt)
-    print(style)
-    print(size)
     try:
-        kwargs = {
-            "model": model,
-            "prompt": final_prompt,
-            "n": 1,
-            "size": size
-        }
-        if quality and quality != "auto":
-            kwargs["quality"] = quality
-
-        response = client.images.generate(**kwargs)
-
-        if hasattr(response.data[0], "b64_json") and response.data[0].b64_json:
-            image_base64 = response.data[0].b64_json
-            image_data = base64.b64decode(image_base64)
-        elif hasattr(response.data[0], "url") and response.data[0].url:
-            # baixa a imagem da URL retornada
-            import requests
-            img_res = requests.get(response.data[0].url)
-            img_res.raise_for_status()
-            image_data = img_res.content
-        else:
-            return jsonify({"error": "Resposta da API não contém imagem válida"}), 500
-
-        # Salva a imagem no servidor
+        os.makedirs(UPLOAD_DIR, exist_ok=True)
         filename = f"{uuid.uuid4()}.png"
         save_path = os.path.join(UPLOAD_DIR, filename)
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
-        with open(save_path, "wb") as f:
-            f.write(image_data)
+        if not model.startswith("imagen-"):
+            size = map_size(model, ratio)
+            client = OpenAI(api_key=OPENAI_API_KEY)
+            kwargs = {
+                "model": model,
+                "prompt": final_prompt,
+                "n": 1,
+                "size": size
+            }
+            if quality and quality != "auto":
+                kwargs["quality"] = quality
 
+            response = client.images.generate(**kwargs)
+
+            if hasattr(response.data[0], "b64_json") and response.data[0].b64_json:
+                image_data = base64.b64decode(response.data[0].b64_json)
+            elif hasattr(response.data[0], "url") and response.data[0].url:
+                img_res = requests.get(response.data[0].url)
+                img_res.raise_for_status()
+                image_data = img_res.content
+            else:
+                return jsonify({"error": "Resposta da API OpenAI não contém imagem válida"}), 500
+            with open(save_path, "wb") as f:
+                f.write(image_data)
+            final_ratio = size
+        else:
+            config_map = map_aspectratio_gemini(ratio)
+            response = client_gemini.models.generate_images(
+                model=model,
+                prompt=final_prompt,
+                config=types.GenerateImagesConfig(
+                    number_of_images=1,
+                    aspect_ratio=config_map["aspectRatio"],
+                )
+            )
+            generated_image = response.generated_images[0].image
+            generated_image.save(save_path)
+            final_ratio = config_map["aspectRatio"]
+            
         # Salva no banco
         generated = GeneratedImageContent(
             user_id=user.id,
@@ -623,7 +632,7 @@ def generate_image():
             model_used=model,
             file_path=save_path,
             style=style,
-            ratio=size
+            ratio=final_ratio
         )
         db.session.add(generated)
         db.session.commit()
