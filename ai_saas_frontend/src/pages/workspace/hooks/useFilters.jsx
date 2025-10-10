@@ -4,7 +4,7 @@ import {
   IMAGE_MODELS,
   VIDEO_MODELS,
   IMAGE_STYLES,
-  VIDEO_STYLES,
+  VIDEO_RATIOS,
   IMAGE_RATIOS,
 } from "../../../utils/constants";
 

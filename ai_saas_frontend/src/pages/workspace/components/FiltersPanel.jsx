@@ -5,7 +5,7 @@ import {
   IMAGE_MODELS,
   VIDEO_MODELS,
   IMAGE_STYLES,
-  VIDEO_STYLES,
+  VIDEO_RATIOS,
   IMAGE_RATIOS,
 } from "../../../utils/constants";
 
@@ -119,7 +119,7 @@ export default function FiltersPanel({
                     className="bg-gray-50 rounded px-2 py-1 shadow-sm focus:outline-none focus:shadow-md text-black"
                   >
                     <option value="">Todos</option>
-                    {(activeTab === "image" ? IMAGE_STYLES : VIDEO_STYLES).map(({ value, label }) => (
+                    {(activeTab === "image" ? IMAGE_STYLES : VIDEO_RATIOS).map(({ value, label }) => (
                       <option key={value} value={value}>
                         {label}
                       </option>

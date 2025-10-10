@@ -4,36 +4,39 @@ import { generatedContentRoutes } from "../../../services/apiRoutes";
 
 export default function ContentPreview({ content, isModal = false }) {
   const baseClasses = "object-contain rounded";
-  const [imageUrl, setImageUrl] = useState(null);
+  const [mediaUrl, setMediaUrl] = useState(null);
 
   useEffect(() => {
-    if (content.content_type === "image" && content.id) {
-      const fetchImage = async () => {
-        try {
-          // Faz a requisição para a rota protegida
-          const res = await apiFetch(generatedContentRoutes.getImage(content.id), {
-            method: "GET",
-          });
+    let isMounted = true; // evita atualizar estado após unmount
+    const fetchMedia = async () => {
+      try {
+        if (!content.id) return;
 
-          // res é Response, transforma em blob
-          const blob = await res.blob();
-
-          // Cria URL local para renderizar
-          setImageUrl(URL.createObjectURL(blob));
-        } catch (err) {
-          console.error("Erro ao carregar imagem:", err);
+        let res;
+        if (content.content_type === "image") {
+          res = await apiFetch(generatedContentRoutes.getImage(content.id), { method: "GET" });
+        } else if (content.content_type === "video") {
+          res = await apiFetch(generatedContentRoutes.getVideo(content.id), { method: "GET" });
+        } else {
+          return;
         }
-      };
 
-      fetchImage();
+        const blob = await res.blob();
+        if (isMounted) setMediaUrl(URL.createObjectURL(blob));
+      } catch (err) {
+        console.error(`Erro ao carregar ${content.content_type}:`, err);
+      }
+    };
 
-      // Cleanup: revoga blob URL quando componente desmonta
-      return () => {
-        if (imageUrl) URL.revokeObjectURL(imageUrl);
-      };
-    }
+    fetchMedia();
+
+    return () => {
+      isMounted = false;
+      if (mediaUrl) URL.revokeObjectURL(mediaUrl);
+    };
   }, [content]);
 
+  // TEXTOS
   if (content.content_type === "text") {
     const text = content.content_data || content.prompt;
     const displayText = isModal
@@ -53,6 +56,7 @@ export default function ContentPreview({ content, isModal = false }) {
     );
   }
 
+  // IMAGENS
   if (content.content_type === "image") {
     return (
       <div
@@ -62,25 +66,20 @@ export default function ContentPreview({ content, isModal = false }) {
             : "w-full max-h-[200px] overflow-hidden rounded"
         }
       >
-        {imageUrl ? (
+        {mediaUrl ? (
           <img
-            src={imageUrl}
+            src={mediaUrl}
             alt={content.prompt || "Imagem gerada"}
-            className={
-              isModal
-                ? `${baseClasses} max-w-full max-h-[400px]`
-                : `${baseClasses} w-full`
-            }
+            className={isModal ? `${baseClasses} max-w-full max-h-[400px]` : `${baseClasses} w-full`}
           />
         ) : (
-          <p className="text-gray-500 text-xs text-center py-8">
-            Carregando imagem...
-          </p>
+          <p className="text-gray-500 text-xs text-center py-8">Carregando imagem...</p>
         )}
       </div>
     );
   }
 
+  // VÍDEOS
   if (content.content_type === "video") {
     return (
       <div
@@ -90,14 +89,16 @@ export default function ContentPreview({ content, isModal = false }) {
             : "w-full max-h-[200px] overflow-hidden rounded"
         }
       >
-        <video
-          src={content.file_path}
-          controls
-          className={
-            isModal ? `${baseClasses} max-w-full max-h-full` : `${baseClasses} w-full`
-          }
-          preload="metadata"
-        />
+        {mediaUrl ? (
+          <video
+            src={mediaUrl}
+            controls
+            className={isModal ? `${baseClasses} max-w-full max-h-full` : `${baseClasses} w-full`}
+            preload="metadata"
+          />
+        ) : (
+          <p className="text-gray-500 text-xs text-center py-8">Carregando vídeo...</p>
+        )}
       </div>
     );
   }

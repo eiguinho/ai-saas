@@ -30,10 +30,9 @@ export const IMAGE_MODELS = [
 ];
 
 export const VIDEO_MODELS = [
-  { value: "openai-sora", label: "OpenAI Sora" },
-  { value: "runway-ml", label: "Runway ML" },
-  { value: "synthesia", label: "Synthesia" },
-  { value: "pika-labs", label: "Pika Labs" },
+  { value: "veo-3.0-generate-001", label: "Gemini Veo 3.0" },
+  { value: "veo-3.0-fast-generate-001", label: "Gemini Veo 3.0 Fast" },
+  { value: "veo-2.0-generate-001", label: "Gemini Veo 2.0" },
 ];
 
 export const IMAGE_STYLES = [
@@ -45,18 +44,15 @@ export const IMAGE_STYLES = [
   { value: "digital", label: "Arte Digital" },
 ];
 
-export const VIDEO_STYLES = [
-  { value: "realist", label: "Realista" },
-  { value: "animated", label: "Animado" },
-  { value: "cinematic", label: "Cinematográfico" },
-  { value: "documentary", label: "Documentário" },
-  { value: "artistic", label: "Artístico" },
-];
-
 export const IMAGE_RATIOS = [
   { value: "1024x1024", label: "Quadrado" },
   { value: "1536x1024", label: "Paisagem" },
   { value: "1024x1536", label: "Retrato" },
+];
+
+export const VIDEO_RATIOS = [
+  { value: "16:9", label: "Paisagem (16:9)" },
+  { value: "9:16", label: "Retrato (9:16)" },
 ];
 
 export const IMAGE_QUALITIES = [

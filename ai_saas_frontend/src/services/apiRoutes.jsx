@@ -56,6 +56,7 @@ export const generatedContentRoutes = {
   delete: (contentId) => `${API_BASE}/contents/${contentId}`, // DELETE → deletar conteúdo
   deleteBatch: `${API_BASE}/contents/batch`, // NOVA ROTA
   getImage: (contentId) => `${API_BASE}/contents/images/${contentId}`,
+  getVideo: (id) => `${API_BASE}/contents/videos/${id}`,
 };
 
 export const notificationRoutes = {
@@ -73,6 +74,7 @@ export const plansRoutes = {
 export const aiRoutes = {
   generateText: `${API_BASE}/ai/generate-text`,  // POST → gerar texto via IA
   generateImage: `${API_BASE}/ai/generate-image`,
+  generateVideo: `${API_BASE}/ai/generate-video`,
 };
 
 export const chatRoutes = {
