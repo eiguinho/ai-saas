@@ -2,15 +2,16 @@ import { useEffect, useState } from "react";
 import { apiFetch } from "../../../services/apiService";
 import { generatedContentRoutes } from "../../../services/apiRoutes";
 
-export default function ContentPreview({ content, isModal = false }) {
+export default function ContentPreview({ content, isModal = false, onMediaReady }) {
   const baseClasses = "object-contain rounded";
   const [mediaUrl, setMediaUrl] = useState(null);
 
   useEffect(() => {
-    let isMounted = true; // evita atualizar estado após unmount
+    let isMounted = true;
+
     const fetchMedia = async () => {
       try {
-        if (!content.id) return;
+        if (!content?.id) return;
 
         let res;
         if (content.content_type === "image") {
@@ -22,7 +23,12 @@ export default function ContentPreview({ content, isModal = false }) {
         }
 
         const blob = await res.blob();
-        if (isMounted) setMediaUrl(URL.createObjectURL(blob));
+        const url = URL.createObjectURL(blob);
+
+        if (isMounted) {
+          setMediaUrl(url);
+          onMediaReady?.(url); // notifica o pai (ex: modal) quando o arquivo estiver pronto
+        }
       } catch (err) {
         console.error(`Erro ao carregar ${content.content_type}:`, err);
       }
@@ -42,7 +48,7 @@ export default function ContentPreview({ content, isModal = false }) {
     const displayText = isModal
       ? text
       : text?.length > 150
-      ? text.substring(0, 150) + "..."
+      ? text.slice(0, 150) + "..."
       : text;
 
     return (
@@ -70,10 +76,16 @@ export default function ContentPreview({ content, isModal = false }) {
           <img
             src={mediaUrl}
             alt={content.prompt || "Imagem gerada"}
-            className={isModal ? `${baseClasses} max-w-full max-h-[400px]` : `${baseClasses} w-full`}
+            className={
+              isModal
+                ? `${baseClasses} max-w-full max-h-[400px]`
+                : `${baseClasses} w-full`
+            }
           />
         ) : (
-          <p className="text-gray-500 text-xs text-center py-8">Carregando imagem...</p>
+          <p className="text-gray-500 text-xs text-center py-8">
+            Carregando imagem...
+          </p>
         )}
       </div>
     );
@@ -85,19 +97,33 @@ export default function ContentPreview({ content, isModal = false }) {
       <div
         className={
           isModal
-            ? "flex items-center justify-center mx-auto w-[400px] h-[300px] bg-gray-50 rounded"
-            : "w-full max-h-[200px] overflow-hidden rounded"
+            ? "flex items-center justify-center mx-auto w-[800px] h-[500px] bg-gray-50 rounded"
+            : "relative w-full max-h-[200px] overflow-hidden rounded"
         }
       >
         {mediaUrl ? (
-          <video
-            src={mediaUrl}
-            controls
-            className={isModal ? `${baseClasses} max-w-full max-h-full` : `${baseClasses} w-full`}
-            preload="metadata"
-          />
+          isModal ? (
+            <video
+              src={mediaUrl}
+              controls
+              className={`${baseClasses} max-w-full max-h-full`}
+              preload="metadata"
+            />
+          ) : (
+            <video
+              src={mediaUrl}
+              className={`${baseClasses} w-full opacity-90`}
+              preload="metadata"
+              muted
+              playsInline
+              onMouseOver={(e) => e.target.pause()}
+              onClick={(e) => e.preventDefault()}
+            />
+          )
         ) : (
-          <p className="text-gray-500 text-xs text-center py-8">Carregando vídeo...</p>
+          <p className="text-gray-500 text-xs text-center py-8">
+            Carregando vídeo...
+          </p>
         )}
       </div>
     );
