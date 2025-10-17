@@ -1,31 +1,12 @@
 import { useState } from 'react';
 import styles from './image.module.css';
 import Layout from "../../../components/layout/Layout";
-import Select from "react-select";
+import CustomSelect from "../../../components/common/CustomSelect";
 import { Download, Send, Loader2, Image as ImageIcon, Settings } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { aiRoutes, generatedContentRoutes } from '../../../services/apiRoutes'; // ajuste conforme sua estrutura
 import { apiFetch } from '../../../services/apiService';
 import { IMAGE_MODELS, IMAGE_STYLES, IMAGE_RATIOS, IMAGE_QUALITIES } from '../../../utils/constants';
-
-const selectStyles = {
-    control: (base) => ({
-      ...base,
-      borderRadius: 12,
-      padding: "2px 4px",
-      boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-      border: "1px solid #d1d5db",
-      cursor: "pointer",
-    }),
-    singleValue: (base) => ({ ...base, color: "#111827", fontWeight: "400" }),
-    menu: (base) => ({ ...base, borderRadius: 12, overflow: "hidden" }),
-    option: (base, state) => ({
-      ...base,
-      backgroundColor: state.isFocused ? "rgba(59, 130, 246,0.2)" : "#fff",
-      color: state.isFocused ? "#3b82f6" : "#111827",
-      cursor: "pointer",
-    }),
-  };
 
 function ImageGeneration() {
   const [prompt, setPrompt] = useState("");
@@ -105,34 +86,28 @@ function ImageGeneration() {
             {/* Modelo, estilo, proporção */}
             <div className="flex flex-col mb-2">
               <label htmlFor="model" className={styles.blockTitle}>Modelo</label>
-              <Select
+              <CustomSelect
                 value={IMAGE_MODELS.find((m) => m.value === model)}
                 onChange={(s) => setModel(s.value)}
                 options={IMAGE_MODELS}
-                isSearchable={false}
-                styles={selectStyles}
               />
             </div>
 
             <div className="flex flex-col mb-2">
               <label htmlFor="style" className={styles.blockTitle}>Estilo</label>
-              <Select
+              <CustomSelect
                 value={IMAGE_STYLES.find((m) => m.value === style)}
-                onChange={(selected) => setStyle(selected.value)}
+                onChange={(s) => setStyle(s.value)}
                 options={IMAGE_STYLES}
-                isSearchable={false}
-                styles={selectStyles}
               />
             </div>
 
             <div className="flex flex-col mb-2">
               <label htmlFor="ratio" className={styles.blockTitle}>Proporção</label>
-              <Select
+              <CustomSelect
                 value={IMAGE_RATIOS.find((r) => r.value === ratio)}
                 onChange={(s) => setRatio(s.value)}
                 options={IMAGE_RATIOS}
-                isSearchable={false}
-                styles={selectStyles}
               />
             </div>
           </div>

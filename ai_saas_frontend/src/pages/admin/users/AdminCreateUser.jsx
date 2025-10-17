@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import Layout from "../../../components/layout/Layout";
 import { User, LockKeyhole, Mail, UserCircle, ArrowLeft, Layers } from "lucide-react";
 import { toast } from "react-toastify";
-import Select from "react-select";
+import CustomSelect from "../../../components/common/CustomSelect";
 import { adminRoutes, plansRoutes } from "../../../services/apiRoutes";
 import { apiFetch } from "../../../services/apiService";
 import styles from "../admin.module.css";
@@ -192,7 +192,7 @@ export default function AdminCreateUser() {
           {/* Plano */}
           <div className="relative mb-4">
             <Layers className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Select
+            <CustomSelect
               value={plans.find((p) => p.id === form.plan_id) || null}
               onChange={(selected) => setForm((prev) => ({ ...prev, plan_id: selected?.id || "" }))}
               options={plans}
@@ -200,24 +200,6 @@ export default function AdminCreateUser() {
               getOptionValue={(p) => p.id}
               placeholder="Selecione um plano"
               className="pl-10 text-sm"
-              styles={{
-                control: (base) => ({
-                  ...base,
-                  borderRadius: 12,
-                  borderColor: "#d1d5db",
-                  paddingLeft: 2,
-                  minHeight: "38px",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                }),
-                menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                option: (base, state) => ({
-                  ...base,
-                  backgroundColor: state.isFocused ? "rgba(59, 130, 246,0.1)" : "#fff",
-                  color: "#000",
-                  cursor: "pointer",
-                }),
-              }}
-              menuPortalTarget={document.body}
             />
           </div>
 

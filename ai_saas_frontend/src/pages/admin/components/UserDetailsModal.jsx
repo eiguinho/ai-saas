@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
-import Select from "react-select";
+import CustomSelect from "../../../components/common/CustomSelect";
 import { userRoutes, adminRoutes, plansRoutes } from "../../../services/apiRoutes";
 import { apiFetch } from "../../../services/apiService";
 
@@ -84,25 +84,6 @@ export default function UserDetailsModal({ user, onClose, onUpdate }) {
     { value: false, label: "Não" },
   ];
 
-  const selectStyles = {
-    control: (base) => ({
-      ...base,
-      borderRadius: 12,
-      padding: "2px 4px",
-      boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-      border: "1px solid #d1d5db",
-      cursor: "pointer",
-    }),
-    singleValue: (base) => ({ ...base, color: "#111827", fontWeight: "400" }),
-    menu: (base) => ({ ...base, borderRadius: 12, overflow: "hidden" }),
-    option: (base, state) => ({
-      ...base,
-      backgroundColor: state.isFocused ? "rgba(59, 130, 246,0.2)" : "#fff",
-      color: state.isFocused ? "#3b82f6" : "#111827",
-      cursor: "pointer",
-    }),
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-brightness-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg max-h-[90vh] overflow-y-auto relative">
@@ -131,12 +112,21 @@ export default function UserDetailsModal({ user, onClose, onUpdate }) {
 
           <div>
             <label className="block text-sm font-medium mb-1">Plano</label>
-            <Select value={planOptions.find((p) => p.value === plan)} onChange={(selected) => setPlan(selected?.value || "")} options={planOptions} isSearchable={false} styles={selectStyles} />
+            <CustomSelect
+              value={planOptions.find((p) => p.value === plan)}
+              onChange={(selected) => setPlan(selected?.value || "")}
+              options={planOptions}
+              placeholder="Selecione um plano"
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-1">Ativo?</label>
-            <Select value={activeOptions.find((a) => a.value === isActive)} onChange={(selected) => setIsActive(selected.value)} options={activeOptions} isSearchable={false} styles={selectStyles} />
+            <CustomSelect
+              value={activeOptions.find((a) => a.value === isActive)}
+              onChange={(selected) => setIsActive(selected.value)}
+              options={activeOptions}
+            />
           </div>
 
           <button onClick={handleSave} disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition disabled:opacity-50">

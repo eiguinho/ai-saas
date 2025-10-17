@@ -6,7 +6,7 @@ from flask_migrate import Migrate
 from dotenv import load_dotenv
 from extensions import bcrypt, jwt, db, limiter, jwt_required, get_jwt_identity, create_access_token
 from utils import check_if_token_revoked, create_default_plans
-from routes import user_api, admin_api, auth_api, email_api, profile_api, project_api, generated_content_api, notification_api, plan_api, ai_generation_api, chat_api
+from routes import user_api, admin_api, auth_api, email_api, profile_api, project_api, generated_content_api, notification_api, plan_api, ai_generation_api, ai_generation_video_api, chat_api
 from models import User, Plan
 import os, uuid
 
@@ -137,6 +137,7 @@ app.register_blueprint(plan_api, url_prefix="/api/plans")
 app.register_blueprint(generated_content_api, url_prefix="/api/contents")
 app.register_blueprint(notification_api, url_prefix="/api/notifications")
 app.register_blueprint(ai_generation_api, url_prefix="/api/ai")
+app.register_blueprint(ai_generation_video_api, url_prefix="/api/ai")
 app.register_blueprint(chat_api, url_prefix="/api/chats")
 
 print("🚀 CORS configurado para:", app.config.get("CORS_ALLOW_HEADERS"))

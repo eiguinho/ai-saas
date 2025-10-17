@@ -1,31 +1,12 @@
 import { useState } from 'react';
 import styles from './video.module.css';
 import Layout from "../../../components/layout/Layout";
-import Select from "react-select";
+import CustomSelect from '../../../components/common/CustomSelect';
 import { Download, Send, Loader2, Video as VideoIcon, Settings } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { aiRoutes, generatedContentRoutes } from '../../../services/apiRoutes';
 import { apiFetch } from '../../../services/apiService';
 import { VIDEO_MODELS, VIDEO_RATIOS } from '../../../utils/constants';
-
-const selectStyles = {
-  control: (base) => ({
-    ...base,
-    borderRadius: 12,
-    padding: "2px 4px",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-    border: "1px solid #d1d5db",
-    cursor: "pointer",
-  }),
-  singleValue: (base) => ({ ...base, color: "#111827", fontWeight: "400" }),
-  menu: (base) => ({ ...base, borderRadius: 12, overflow: "hidden" }),
-  option: (base, state) => ({
-    ...base,
-    backgroundColor: state.isFocused ? "rgba(59, 130, 246,0.2)" : "#fff",
-    color: state.isFocused ? "#3b82f6" : "#111827",
-    cursor: "pointer",
-  }),
-};
 
 function VideoGeneration() {
   const [prompt, setPrompt] = useState("");
@@ -105,24 +86,24 @@ function VideoGeneration() {
             {/* Modelo */}
             <div className="flex flex-col mb-2">
               <label htmlFor="model" className={styles.blockTitle}>Modelo</label>
-              <Select
+              <CustomSelect
                 value={VIDEO_MODELS.find((m) => m.value === model)}
                 onChange={(s) => setModel(s.value)}
                 options={VIDEO_MODELS}
                 isSearchable={false}
-                styles={selectStyles}
+                placeholder="Selecione o modelo"
               />
             </div>
 
             {/* Proporção */}
             <div className="flex flex-col mb-2">
               <label htmlFor="ratio" className={styles.blockTitle}>Proporção</label>
-              <Select
+              <CustomSelect
                 value={VIDEO_RATIOS.find((m) => m.value === ratio)}
                 onChange={(s) => setRatio(s.value)}
                 options={VIDEO_RATIOS}
                 isSearchable={false}
-                styles={selectStyles}
+                placeholder="Selecione a proporção"
               />
             </div>
           </div>
