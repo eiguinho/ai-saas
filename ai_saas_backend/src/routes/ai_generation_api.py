@@ -247,7 +247,6 @@ def generate_text():
         chat = Chat.query.filter_by(id=chat_id, user_id=user_id).first() if chat_id else None
         if chat is None:
             chat_title = "Novo Chat"
-            print("[INFO] Criando novo chat")
             if user_input:
                 try:
                     title_res = requests.post(
@@ -270,9 +269,7 @@ def generate_text():
             chat = Chat(user_id=user_id, title=chat_title, supports_vision=supports_vision(model))
             db.session.add(chat)
             db.session.commit()
-            print(f"[INFO] Novo chat criado: {chat.id}")
 
-        # 🔹 Criar mensagem do usuário
         user_msg = ChatMessage(
             chat_id=chat.id,
             role=SenderType.USER.value,
@@ -283,7 +280,6 @@ def generate_text():
         db.session.commit()
         print(f"[MSG USER] Chat {chat.id} - Mensagem enviada: {user_input[:50]} (ID {user_msg.id})")
 
-        # 🔹 Criar attachments vinculados à mensagem
         uploaded_files = []
         for f in files_to_save:
             try:
@@ -308,18 +304,16 @@ def generate_text():
             except Exception as ae:
                 print(f"[WARN] Falha ao salvar attachment {f['name']}: {ae}")
 
-        # 🔹 Histórico de mensagens
         history = ChatMessage.query.filter_by(chat_id=chat.id).order_by(ChatMessage.created_at).all()
         session_messages = [{"role": m.role, "content": m.content, "attachments": getattr(m, "attachments", [])} for m in history]
         print(f"[INFO] Iniciando envio para IA (modelo {model})")
 
-        # 🔹 Envio para IA
         generated_text = ""
         try:
             if is_gemini_model(model):
                 gemini_chat = None
                 parts = []
-                uploaded_images = []   # ✅ igual ao OpenAI
+                uploaded_images = []
 
                 try:
                     print(f"[INFO] Inicializando chat Gemini para chat_id {chat.id}")
@@ -370,17 +364,14 @@ def generate_text():
                             )
 
                             answer = resp.text.strip().upper()
-                            print(f"[GEMINI-INTENÇÃO] {answer}")
                             return answer == "SIM"
 
                         except Exception as e:
-                            print(f"[WARN] fallback intenção imagem: {e}")
                             prompt_lower = prompt.lower()
                             keys = ["imagem", "desenhe", "faça um desenho", "gere uma imagem", "foto de", "pinte"]
                             return any(k in prompt_lower for k in keys)
 
                     user_asked_image = should_generate_image(user_input)
-                    print(f"[INFO] Usuário pediu imagem? {user_asked_image}")
 
                     # ---------- ENVIO PARA GEMINI ----------
                     response = send_with_retry_gemini(gemini_chat, parts)
@@ -442,7 +433,7 @@ def generate_text():
 
                     # ---------- DEFINIR TEXTO OU VAZIO ----------
                     if uploaded_images:
-                        generated_text = ""  # ✅ igual ao OpenAI
+                        generated_text = ""
                     else:
                         generated_text = generated_text_local or "[Sem retorno]"
 
@@ -486,8 +477,6 @@ def generate_text():
                             db.session.add(generated_content)
                             db.session.commit()
 
-                            print(f"[GENERATED CONTENT] Imagem salva em GeneratedImageContent (ID {generated_content.id})")
-
                         except Exception as ae:
                             db.session.rollback()
                             print(f"[WARN] Falha ao salvar attachment de IA {img['name']}: {ae}")
@@ -523,19 +512,14 @@ def generate_text():
                 if not uses_completion_tokens_for_openai(model):
                     body["temperature"] = temperature
 
-                # Enviar requisição com retry
-                # 🔹 Envio para IA (OpenAI)
                 try:
                     response = make_request_with_retry(endpoint, headers, body, max_retries=5, backoff=3)
 
-                    # Extrair texto
                     try:
                         generated_text = response.json()["choices"][0]["message"]["content"]
                     except Exception:
                         print(f"[WARN] Resposta OpenAI não é JSON:\n{response.text[:1000]}")
                         generated_text = "[Erro ao gerar resposta da IA]"
-
-                    # 🔹 Se o modelo suporta visão, gerar imagem separada e salvar
                     
                     if supports_generate_image(model):
                         try:
@@ -582,11 +566,8 @@ def generate_text():
             print(f"[ERROR] Falha geral ao gerar texto IA: {e}")
             generated_text = "[Erro ao gerar resposta da IA]"
 
-
-        # 🔹 Salvar mensagem da IA
         try:
             safe_text = generated_text if not uploaded_images else ""
-            print(f"opa -> {safe_text}")
             ai_msg = ChatMessage(
                 chat_id=chat.id,
                 role=SenderType.AI.value,
@@ -620,14 +601,13 @@ def generate_text():
                             user_id=chat.user_id,
                             prompt=user_input,
                             model_used=model,
-                            content_data=None,   # se quiser guardar JSON/metadata
+                            content_data=None,
                             file_path=img["path"],
-                            style=None,          # se tiver suporte a estilos, preencher aqui
-                            ratio=None           # idem para proporção
+                            style=None,
+                            ratio=None
                         )
                         db.session.add(generated_content)
                         db.session.commit()
-                        print(f"[GENERATED CONTENT] Imagem salva em GeneratedImageContent (ID {generated_content.id})")
                     except Exception as ge:
                         db.session.rollback()
                         print(f"[WARN] Falha ao salvar em GeneratedContent: {ge}")

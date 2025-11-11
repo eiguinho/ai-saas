@@ -9,12 +9,11 @@ export default function GeneratedFiles({ goBack }) {
   const [images, setImages] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
 
-  // Carregar todas as imagens
   useEffect(() => {
     async function fetchImages() {
       try {
         const res = await apiFetch(generatedContentRoutes.list);
-        setImages(res); // res deve ser array de conteúdos {id, content_type, prompt, model_used, ...}
+        setImages(res);
       } catch (err) {
         console.error(err);
       } finally {
@@ -24,7 +23,6 @@ export default function GeneratedFiles({ goBack }) {
     fetchImages();
   }, []);
 
-  // Função para download
   const handleDownload = async (content) => {
     try {
       const res = await apiFetch(generatedContentRoutes.getImage(content.id), { method: "GET" });
@@ -44,7 +42,7 @@ export default function GeneratedFiles({ goBack }) {
   };
 
   return (
-    <div className="p-2">
+    <div className="p-2 h-full overflow-y-auto">
       {loading ? (
         <p className="text-gray-500">Carregando...</p>
       ) : images.length === 0 ? (

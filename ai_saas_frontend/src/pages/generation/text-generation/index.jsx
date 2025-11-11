@@ -37,10 +37,8 @@ function TextGeneration() {
     updateChatList,
   });
 
-  // 🔥 Reagir à mudanças de user
   useEffect(() => {
     if (user) {
-      // Aqui você pode habilitar/desabilitar controles, anexos, ou atualizar UI
       if (user.plan?.name === "Pro") {
       }
     }
@@ -106,7 +104,6 @@ function TextGeneration() {
             )
           )}
 
-          {/* Input e controles do chat só aparecem se não estiver na tela de arquivos */}
           {!imagesOpen && (
             <div className="mt-2 flex flex-col gap-4 rounded-3xl shadow-xl p-6 border border-gray-200 bg-white">
               <ChatInput
