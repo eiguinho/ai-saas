@@ -11,6 +11,7 @@ from google import genai
 from google.genai import types
 from openai import OpenAI
 from io import BytesIO
+from PIL import Image
 
 load_dotenv()
 OPENAI_API_KEY = os.getenv("API_KEY")
@@ -318,29 +319,20 @@ def generate_text():
             if is_gemini_model(model):
                 gemini_chat = None
                 parts = []
+                uploaded_images = []   # ✅ igual ao OpenAI
 
                 try:
                     print(f"[INFO] Inicializando chat Gemini para chat_id {chat.id}")
                     gemini_chat = client_gemini.chats.create(model=model)
 
-                    system_notice = (
-                        f"⚠️ Aviso MUITO importante: o modelo atual é {model}.\n"
-                        "Este modelo Gemini NÃO SUPORTA geração de imagens.\n"
-                        "Se o usuário pedir imagens, responda educadamente que o modelo NÃO consegue gerar NESSE MODELO SELECIONADO.\n"
-                        "Continue apenas com respostas de texto por enquanto."
-                    )
-                    parts.append(system_notice)
-
-                    # 🔹 Carregar histórico completo do chat
+                    # ---------- HISTÓRICO ----------
                     history = ChatMessage.query.filter_by(chat_id=chat.id).order_by(ChatMessage.created_at).all()
-                    print(f"[INFO] Histórico completo carregado: {len(history)} mensagens")
+                    print(f"[INFO] Histórico carregado: {len(history)} mensagens")
 
                     for m in history:
-                        # 🔹 Texto
                         if m.content:
                             parts.append(m.content)
 
-                        # 🔹 Attachments
                         for att in getattr(m, "attachments", []):
                             path = getattr(att, "path", None)
                             mimetype = getattr(att, "mimetype", "")
@@ -358,19 +350,151 @@ def generate_text():
                             else:
                                 parts.append(f"[Anexo não suportado: {name}]")
 
-                    # 🔹 Nova mensagem do usuário
                     if user_input:
                         parts.append(user_input)
 
-                    # 🔹 Enviar tudo de uma vez para Gemini
-                    print(f"[INFO] Enviando batch para Gemini com {len(parts)} partes")
-                    print(f"oia a parte ai: {parts}")
+                    # ---------- DETECTAR INTENÇÃO DE IMAGEM ----------
+                    def should_generate_image(prompt: str) -> bool:
+                        try:
+                            analysis_prompt = (
+                                "Você é um verificador de intenção. "
+                                "Analise o texto e diga se ele pede geração de uma imagem. "
+                                "Perguntas como 'pode gerar imagem?' não contam. "
+                                "Responda apenas SIM ou NÃO.\n\n"
+                                f"{prompt}"
+                            )
+
+                            resp = client_gemini.models.generate_content(
+                                model="gemini-2.0-flash",
+                                contents=analysis_prompt
+                            )
+
+                            answer = resp.text.strip().upper()
+                            print(f"[GEMINI-INTENÇÃO] {answer}")
+                            return answer == "SIM"
+
+                        except Exception as e:
+                            print(f"[WARN] fallback intenção imagem: {e}")
+                            prompt_lower = prompt.lower()
+                            keys = ["imagem", "desenhe", "faça um desenho", "gere uma imagem", "foto de", "pinte"]
+                            return any(k in prompt_lower for k in keys)
+
+                    user_asked_image = should_generate_image(user_input)
+                    print(f"[INFO] Usuário pediu imagem? {user_asked_image}")
+
+                    # ---------- ENVIO PARA GEMINI ----------
                     response = send_with_retry_gemini(gemini_chat, parts)
-                    generated_text = getattr(response, "text", "[Erro ao gerar resposta da IA]")
+
+                    generated_text_local = None
+                    generated_images_paths = []
+
+                    for cand in getattr(response, "candidates", []):
+                        for part in getattr(cand.content, "parts", []):
+                            if getattr(part, "text", None):
+                                generated_text_local = part.text
+                            elif getattr(part, "inline_data", None):
+                                data = part.inline_data.data
+                                mime = part.inline_data.mime_type or "image/png"
+
+                                try:
+                                    img_bytes = base64.b64decode(data)
+                                except Exception:
+                                    img_bytes = data
+
+                                img = Image.open(BytesIO(img_bytes))
+                                filename = f"gemini_{uuid.uuid4().hex}.png"
+                                save_path = os.path.join(UPLOAD_DIR, filename)
+                                img.save(save_path)
+                                generated_images_paths.append(save_path)
+
+                    # ---------- SE USUÁRIO PEDIU IMAGEM E NÃO VEIO INLINE ----------
+                    if user_asked_image and not generated_images_paths:
+                        try:
+                            print("[INFO] Gerando imagem via API do Gemini...")
+                            img_response = client_gemini.models.generate_images(
+                                model="imagen-4.0-fast-generate-001",
+                                prompt=user_input,
+                                config=types.GenerateImagesConfig(
+                                    number_of_images=1,
+                                    aspect_ratio="1:1"
+                                )
+                            )
+
+                            if img_response.generated_images:
+                                img = img_response.generated_images[0].image
+                                filename = f"gemini_{uuid.uuid4().hex}.png"
+                                save_path = os.path.join(UPLOAD_DIR, filename)
+                                img.save(save_path)
+                                generated_images_paths.append(save_path)
+
+                                print(f"[INFO] Imagem salva em {save_path}")
+
+                        except Exception as e:
+                            print(f"[ERROR] Falha ao gerar imagem via API: {e}")
+
+                    # ---------- TRANSFORMAR EM uploaded_images (igual ao OPENAI) ----------
+                    for idx, p in enumerate(generated_images_paths):
+                        uploaded_images.append({
+                            "name": f"gemini_image_{idx}.png",
+                            "path": p,
+                            "url": f"/api/uploads/{os.path.basename(p)}"
+                        })
+
+                    # ---------- DEFINIR TEXTO OU VAZIO ----------
+                    if uploaded_images:
+                        generated_text = ""  # ✅ igual ao OpenAI
+                    else:
+                        generated_text = generated_text_local or "[Sem retorno]"
 
                 except Exception as e:
-                    print(f"[ERROR] Falha ao inicializar chat Gemini: {e}")
+                    print(f"[ERROR] Gemini erro geral: {e}")
                     generated_text = "[Erro ao gerar resposta da IA]"
+                    uploaded_images = []
+
+                # ---------- SALVAR MENSAGEM DA IA (EXATAMENTE COMO OPENAI) ----------
+                try:
+                    for img in uploaded_images:
+                        try:
+                            attachment_obj = ChatAttachment(
+                                message_id=ai_msg.id,
+                                name=img["name"],
+                                path=img["path"],
+                                mimetype="image/png",
+                                size_bytes=os.path.getsize(img["path"]),
+                                created_at=datetime.utcnow()
+                            )
+                            db.session.add(attachment_obj)
+                            db.session.commit()
+
+                            img["id"] = attachment_obj.id
+                            img["mimetype"] = attachment_obj.mimetype
+                            img["size_bytes"] = attachment_obj.size_bytes
+                            img["url"] = f"/api/chats/attachments/{attachment_obj.id}"
+
+                            print(f"[ATTACHMENT AI] Imagem {img['name']} salva (ID {attachment_obj.id})")
+
+                            # ---------- SALVAR EM GENERATED IMAGE CONTENT ----------
+                            generated_content = GeneratedImageContent(
+                                user_id=chat.user_id,
+                                prompt=user_input,
+                                model_used=model,
+                                content_data=None,
+                                file_path=img["path"],
+                                style=None,
+                                ratio=None
+                            )
+                            db.session.add(generated_content)
+                            db.session.commit()
+
+                            print(f"[GENERATED CONTENT] Imagem salva em GeneratedImageContent (ID {generated_content.id})")
+
+                        except Exception as ae:
+                            db.session.rollback()
+                            print(f"[WARN] Falha ao salvar attachment de IA {img['name']}: {ae}")
+
+                except Exception as e:
+                    print(f"[ERROR] Falha ao salvar mensagem da IA (Gemini): {e}")
+
 
             elif is_openrouter_model(model):
                 endpoint = "https://openrouter.ai/api/v1/chat/completions"
