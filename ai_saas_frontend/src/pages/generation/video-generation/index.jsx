@@ -4,7 +4,7 @@ import Layout from "../../../components/layout/Layout";
 import CustomSelect from '../../../components/common/CustomSelect';
 import { Download, Send, Loader2, Video as VideoIcon, Settings } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { aiRoutes, generatedContentRoutes } from '../../../services/apiRoutes';
+import { aiRoutes, generatedContentRoutes, userRoutes } from '../../../services/apiRoutes';
 import { apiFetch } from '../../../services/apiService';
 import { VIDEO_MODELS, VIDEO_RATIOS } from '../../../utils/constants';
 
@@ -25,6 +25,15 @@ function VideoGeneration() {
     setGeneratedVideo(null);
 
     try {
+      const userData = await apiFetch(userRoutes.getCurrentUser(), { method: "GET" });
+      const userPlan = userData?.plan?.name || "Básico";
+
+      if (userPlan !== "Pro") {
+        toast.error("A geração de vídeo está disponível apenas para usuários do plano Pro!");
+        setLoading(false);
+        return;
+      }
+
       const res = await apiFetch(aiRoutes.generateVideo, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
