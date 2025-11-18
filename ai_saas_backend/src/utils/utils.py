@@ -20,8 +20,8 @@ def create_default_plans():
     features = {
         "generate_text": "Geração com todos os modelos",
         "attach_files": "Anexar arquivos",
-        "limit_chats": "Limite de chats",
-        "limit_messages": "Limite de mensagens por chat",
+        "limit_chats": "Sem limite de chats",
+        "limit_messages": "Sem limite de mensagens por chat",
         "customization": "Personalização das respostas (temperatura)",
         "generate_image": "Geração de imagem",
         "generate_video": "Geração de vídeo",
@@ -34,6 +34,10 @@ def create_default_plans():
             f = Feature(key=key, description=desc)
             db.session.add(f)
             db.session.flush()
+        else:
+            # Atualiza descrição se já existir
+            f.description = desc
+
         feature_objs[key] = f
 
     # Planos
@@ -47,14 +51,24 @@ def create_default_plans():
             db.session.flush()
 
         for key, f in feature_objs.items():
-            existing = PlanFeature.query.filter_by(plan_id=plan.id, feature_id=f.id).first()
-            if not existing:
-                # Definir valores por plano
-                if plan.name == "Básico":
-                    value = "false" if key == "generate_text" else "true"
+
+            existing = PlanFeature.query.filter_by(
+                plan_id=plan.id, feature_id=f.id
+            ).first()
+
+            # Valores por plano
+            if plan.name == "Básico":
+                if key in ["generate_text", "generate_video"]:
+                    value = "false"
                 else:
                     value = "true"
+            else:
+                value = "true"
+
+            if not existing:
                 pf = PlanFeature(plan_id=plan.id, feature_id=f.id, value=value)
                 db.session.add(pf)
+            else:
+                existing.value = value
 
     db.session.commit()
