@@ -10,6 +10,8 @@ export const TEXT_MODELS = [
   { value: "gpt-4.1", label: "GPT-4.1", attachments: true, isGpt5: true },
   { value: "gpt-5", label: "GPT-5", attachments: true, isGpt5: true },
   { value: "gpt-5-mini", label: "GPT-5 Mini", attachments: true, isGpt5: true },
+  { value: "gpt-5-nano", label: "GPT-5 Nano", attachments: true, isGpt5: true },
+  { value: "gpt-5.1", label: "GPT-5.1", attachments: true, isGpt5: true },
   { value: "deepseek/deepseek-r1-0528:free", label: "DeepSeek R1 0528", attachments: false, isGpt5: false },
   { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro", attachments: true, isGpt5: true },
   { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash", attachments: true, isGpt5: true },
@@ -30,6 +32,7 @@ export const IMAGE_MODELS = [
 ];
 
 export const VIDEO_MODELS = [
+  { value: "veo-3.1-generate-preview", label: "Gemini Veo 3.1" },
   { value: "veo-3.0-generate-001", label: "Gemini Veo 3.0" },
   { value: "veo-3.0-fast-generate-001", label: "Gemini Veo 3.0 Fast" },
   { value: "veo-2.0-generate-001", label: "Gemini Veo 2.0" },

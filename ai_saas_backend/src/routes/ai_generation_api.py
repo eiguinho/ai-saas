@@ -41,12 +41,10 @@ def uses_completion_tokens_for_openai(model: str) -> bool:
 
 def supports_vision(model: str) -> bool:
     res = model.startswith("gpt-4o") or model.startswith("o") or model.startswith("gpt-5") or is_gemini_model(model)
-    print(f"[DEBUG] supports_vision({model}) -> {res}")
     return res
 
 def supports_generate_image(model: str) -> bool:
     res = model.startswith("gpt-4") or model.startswith("gpt-5")
-    print(f"[DEBUG] supports_image({model}) -> {res}")
     return res
 
 def to_data_url(path: str, mimetype: str) -> str:
@@ -54,9 +52,7 @@ def to_data_url(path: str, mimetype: str) -> str:
         return f"data:{mimetype};base64,{base64.b64encode(f.read()).decode('utf-8')}"
     
 def generate_system_message(model: str):
-    print(f"[DEBUG] generate_system_message chamado com model={model}")
     if supports_generate_image(model):
-        print(f"[DEBUG] caiu no if")
         return {
             "role": "system",
             "content": (
@@ -72,7 +68,6 @@ def generate_system_message(model: str):
             )
         }
     else:
-        print(f"[DEBUG] caiu no else")
         return {
             "role": "system",
             "content": (
@@ -90,10 +85,8 @@ def build_messages_for_openai(session_messages, model: str):
     if model != "o1-mini":
         system_msg = generate_system_message(model)
         messages.append(system_msg)
-        print("[DEBUG] Mensagens após system:", messages)
     else:
         print("[DEBUG] Modelo o1-mini detectado, pulando system message")
-
     vision_ok = supports_vision(model)
 
     for m in session_messages:
@@ -109,7 +102,6 @@ def build_messages_for_openai(session_messages, model: str):
         if not attachments:
             msg = {"role": role, "content": text}
             messages.append(msg)
-            print(f"[DEBUG] Mensagem sem anexos adicionada: {msg}")
             continue
 
         if vision_ok:
@@ -127,7 +119,6 @@ def build_messages_for_openai(session_messages, model: str):
                     else:
                         img_part = {"type": "image_url", "image_url": {"url": to_data_url(path, mimetype)}}
                         parts.append(img_part)
-                        print(f"[DEBUG] Imagem anexada adicionada: {img_part}")
                 elif mimetype == "application/pdf" and os.path.exists(path):
                     with open(path, "rb") as f:
                         file_b64 = base64.b64encode(f.read()).decode("utf-8")
@@ -136,27 +127,22 @@ def build_messages_for_openai(session_messages, model: str):
                         "file": {"filename": name, "file_data": f"data:{mimetype};base64,{file_b64}"}
                     }
                     parts.append(pdf_part)
-                    print(f"[DEBUG] PDF anexado adicionado: {pdf_part}")
                 else:
                     non_images.append(name)
 
             if non_images:
                 ni_part = {"type": "text", "text": f"Arquivos anexados (não-imagem): {', '.join(non_images)}"}
                 parts.append(ni_part)
-                print(f"[DEBUG] Anexos não-imagem adicionados: {ni_part}")
 
             msg = {"role": role, "content": parts}
             messages.append(msg)
-            print(f"[DEBUG] Mensagem com suporte a visão adicionada: {msg}")
 
         else:
             names = ", ".join([a["name"] if isinstance(a, dict) else a.name for a in attachments])
             merge_text = (text + "\n\n" if text else "") + (f"[Anexos]: {names}" if names else text)
             msg = {"role": role, "content": merge_text}
             messages.append(msg)
-            print(f"[DEBUG] Mensagem sem visão adicionada: {msg}")
 
-    print("[DEBUG] Lista final de mensagens construída:", messages)
     return messages
 
 def build_messages_for_openrouter(session_messages, model: str):
@@ -167,7 +153,6 @@ def make_request_with_retry(url, headers, body, max_retries=5, backoff=3):
         response = requests.post(url, headers=headers, json=body, timeout=120)
         if response.status_code == 429:
             if attempt < max_retries - 1:
-                print(f"nova tentativa OpenAI/OpenRouter {attempt+1}/{max_retries}")
                 time.sleep(backoff * (attempt + 1))
                 continue
         return response
@@ -176,7 +161,6 @@ def make_request_with_retry(url, headers, body, max_retries=5, backoff=3):
 def send_with_retry_gemini(chat, message, retries=5, delay=2):
     for attempt in range(retries):
         try:
-            print(f"Tentativa {attempt+1} enviando para Gemini...")
             return chat.send_message(message)
         except Exception as e:
             if "503" in str(e) or "UNAVAILABLE" in str(e):
@@ -224,7 +208,6 @@ def generate_text():
                 except Exception as fe:
                     print(f"[WARN] Falha ao salvar arquivo {f.filename}: {fe}")
 
-            print(f"[INFO] Arquivos processados: {[f['name'] for f in files_to_save]}")
         else:
             data = request.get_json(silent=True) or {}
             user_input = data.get("input", "")
@@ -278,7 +261,6 @@ def generate_text():
         )
         db.session.add(user_msg)
         db.session.commit()
-        print(f"[MSG USER] Chat {chat.id} - Mensagem enviada: {user_input[:50]} (ID {user_msg.id})")
 
         uploaded_files = []
         for f in files_to_save:
@@ -300,7 +282,6 @@ def generate_text():
                     "size_bytes": attachment_obj.size_bytes,
                     "url": f"/api/chats/attachments/{attachment_obj.id}"
                 })
-                print(f"[ATTACHMENT] Chat {chat.id} - {attachment_obj.name} salvo (ID {attachment_obj.id})")
             except Exception as ae:
                 print(f"[WARN] Falha ao salvar attachment {f['name']}: {ae}")
 
@@ -321,7 +302,6 @@ def generate_text():
 
                     # ---------- HISTÓRICO ----------
                     history = ChatMessage.query.filter_by(chat_id=chat.id).order_by(ChatMessage.created_at).all()
-                    print(f"[INFO] Histórico carregado: {len(history)} mensagens")
 
                     for m in history:
                         if m.content:
@@ -577,7 +557,6 @@ def generate_text():
             )
             db.session.add(ai_msg)
             db.session.commit()
-            print(f"[MSG AI] Chat {chat.id} - Mensagem gerada: {generated_text[:50]} (ID {ai_msg.id})")
 
             for img in uploaded_images:
                 try:
@@ -595,7 +574,6 @@ def generate_text():
                     img["mimetype"] = attachment_obj.mimetype
                     img["size_bytes"] = attachment_obj.size_bytes
                     img["url"] = f"/api/chats/attachments/{attachment_obj.id}"
-                    print(f"[ATTACHMENT AI] Imagem {attachment_obj.name} salva (ID {attachment_obj.id})")
                     try:
                         generated_content = GeneratedImageContent(
                             user_id=chat.user_id,
@@ -620,8 +598,6 @@ def generate_text():
             print(f"[ERROR] Falha ao salvar mensagem AI: {ae}")
         
         response_text = "" if uploaded_images else generated_text
-        print(f"[Mensagem gerada] {generated_text}")
-        print(f"[Response gerado] {response}")
 
         return jsonify({
             "chat_id": chat.id,
