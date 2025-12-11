@@ -4,7 +4,7 @@ from models.chat import Chat, ChatMessage, ChatAttachment, SenderType
 from models.generated_content import GeneratedImageContent
 from models.user import User  # <--- corrigido, import do modelo User
 from flask_jwt_extended import get_jwt_identity
-import os, uuid, base64, requests, time
+import os, uuid, base64, requests, time, re
 from datetime import datetime
 from dotenv import load_dotenv
 from google import genai
@@ -30,7 +30,10 @@ ai_generation_api = Blueprint("ai_generation_api", __name__)
 GEMINI_MODELS = ("gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash-lite")
 OPENROUTER_PREFIXES = ("deepseek/", "google/", "tngtech/", "qwen/", "z-ai/")
 OPENROUTER_SUFFIX = ":free"
-PERPLEXITY_MODELS = ("sonar", "sonar-small", "sonar-medium", "sonar-large")
+PERPLEXITY_MODELS = ("sonar", "sonar-reasoning", "sonar-pro", "sonar-reasoning", "sonar-deep-research")
+
+def remove_think_blocks(text):
+    return re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
 
 def is_perplexity_model(model: str) -> bool:
     return model in PERPLEXITY_MODELS
@@ -340,6 +343,8 @@ def generate_text():
 
                     data = response.json()
                     generated_text = data["choices"][0]["message"]["content"]
+
+                    generated_text = remove_think_blocks(generated_text).strip()
 
                     try:
                         citations = data.get("citations", [])
