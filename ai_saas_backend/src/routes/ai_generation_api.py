@@ -17,6 +17,7 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("API_KEY")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+PPLX_API_KEY = os.getenv("PPLX_API_KEY")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # pasta src
 UPLOAD_DIR = os.path.join(BASE_DIR, "..", "static", "uploads")
@@ -29,6 +30,10 @@ ai_generation_api = Blueprint("ai_generation_api", __name__)
 GEMINI_MODELS = ("gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash-lite")
 OPENROUTER_PREFIXES = ("deepseek/", "google/", "tngtech/", "qwen/", "z-ai/")
 OPENROUTER_SUFFIX = ":free"
+PERPLEXITY_MODELS = ("sonar", "sonar-small", "sonar-medium", "sonar-large")
+
+def is_perplexity_model(model: str) -> bool:
+    return model in PERPLEXITY_MODELS
 
 def is_gemini_model(model: str) -> bool:
     return model in GEMINI_MODELS
@@ -78,6 +83,9 @@ def generate_system_message(model: str):
                 "- Se o usuário pedir para gerar imagens, responda educadamente que o modelo atual selecionado não suporta."
             )
         }
+    
+def build_messages_for_perplexity(session_messages, model: str):
+    return build_messages_for_openai(session_messages, model)
 
 def build_messages_for_openai(session_messages, model: str):
     messages = []
@@ -172,6 +180,30 @@ def send_with_retry_gemini(chat, message, retries=5, delay=2):
             else:
                 raise
     raise Exception("Falha após várias tentativas Gemini")
+
+def send_to_perplexity(messages, model, temperature):
+    url = "https://api.perplexity.ai/chat/completions"
+    
+    headers = {
+        "Authorization": f"Bearer {PPLX_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    body = {
+        "model": model,
+        "messages": messages,
+        "temperature": temperature
+    }
+
+    r = requests.post(url, headers=headers, json=body, timeout=120)
+
+    if r.status_code != 200:
+        print("[PPLX ERROR]", r.text)
+        return "[Erro ao gerar resposta com Perplexity]"
+
+    data = r.json()
+
+    return data["choices"][0]["message"]["content"]
 
 @ai_generation_api.route("/generate-text", methods=["POST"])
 @jwt_required()
@@ -291,7 +323,38 @@ def generate_text():
 
         generated_text = ""
         try:
-            if is_gemini_model(model):
+            if is_perplexity_model(model):
+                endpoint = "https://api.perplexity.ai/chat/completions"
+                headers = {
+                    "Authorization": f"Bearer {PPLX_API_KEY}",
+                    "Content-Type": "application/json"
+                }
+                body = {
+                    "model": model,
+                    "messages": build_messages_for_perplexity(session_messages, model),
+                    "temperature": temperature
+                }
+
+                try:
+                    response = make_request_with_retry(endpoint, headers, body, max_retries=5, backoff=3)
+
+                    data = response.json()
+                    generated_text = data["choices"][0]["message"]["content"]
+
+                    try:
+                        citations = data.get("citations", [])
+
+                        if citations:
+                            generated_text += "\n\n🔗 Links\n"
+                            for i, url in enumerate(citations, start=1):
+                                generated_text += f"{i}. {url}\n"
+                    except Exception as ce:
+                        print("[DEBUG ERROR] Não foi possível processar citations:", ce)
+
+                except Exception as oe:
+                    print(f"[ERROR] Falha na chamada Perplexity: {oe}")
+                    generated_text = "[Erro ao gerar resposta da IA]"
+            elif is_gemini_model(model):
                 gemini_chat = None
                 parts = []
                 uploaded_images = []

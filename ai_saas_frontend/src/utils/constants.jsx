@@ -16,6 +16,11 @@ export const TEXT_MODELS = [
   { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro", attachments: true, isGpt5: true },
   { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash", attachments: true, isGpt5: true },
   { value: "gemini-2.5-flash-lite", label: "Gemini 2.5 Flash Lite", attachments: true, isGpt5: false },
+  { value: "sonar", label: "Sonar", attachments: true, isGpt5: false },
+  { value: "sonar-pro", label: "Sonar Pro", attachments: true, isGpt5: true },
+  { value: "sonar-reasoning", label: "Sonar Reasoning", attachments: true, isGpt5: false },
+  { value: "sonar-reasoning-pro", label: "Sonar Reasoning Pro", attachments: true, isGpt5: true },
+  { value: "sonar-deep-research", label: "Sonar Deep Research", attachments: true, isGpt5: true },
 ];
 
 export const IMAGE_MODELS = [
