@@ -4,17 +4,19 @@ from models.chat import Chat, ChatMessage, ChatAttachment, SenderType
 from models.generated_content import GeneratedImageContent
 from models.user import User  # <--- corrigido, import do modelo User
 from flask_jwt_extended import get_jwt_identity
-import os, uuid, base64, requests, time, re
+import os, uuid, base64, requests, time, re, pdfplumber
 from datetime import datetime
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from openai import OpenAI
+from anthropic import Anthropic
 from io import BytesIO
 from PIL import Image
 
 load_dotenv()
 OPENAI_API_KEY = os.getenv("API_KEY")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 PPLX_API_KEY = os.getenv("PPLX_API_KEY")
@@ -25,9 +27,15 @@ UPLOAD_DIR = os.path.abspath(UPLOAD_DIR)
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 client_gemini = genai.Client(api_key=GEMINI_API_KEY)
+client_claude = Anthropic(api_key=ANTHROPIC_API_KEY)
 ai_generation_api = Blueprint("ai_generation_api", __name__)
 
 GEMINI_MODELS = ("gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash-lite")
+CLAUDE_MODELS = (
+    "claude-haiku-4-5-20251001",
+    "claude-sonnet-4-5-20250929",
+    "claude-opus-4-5-20251101"
+)
 OPENROUTER_PREFIXES = ("deepseek/", "google/", "tngtech/", "qwen/", "z-ai/")
 OPENROUTER_SUFFIX = ":free"
 PERPLEXITY_MODELS = ("sonar", "sonar-reasoning", "sonar-pro", "sonar-reasoning", "sonar-deep-research")
@@ -40,6 +48,9 @@ def is_perplexity_model(model: str) -> bool:
 
 def is_gemini_model(model: str) -> bool:
     return model in GEMINI_MODELS
+
+def is_claude_model(model: str) -> bool:
+    return model in CLAUDE_MODELS
 
 def is_openrouter_model(model: str) -> bool:
     return bool(model) and ("/" in model or model.endswith(OPENROUTER_SUFFIX) or model.startswith(OPENROUTER_PREFIXES))
@@ -86,6 +97,20 @@ def generate_system_message(model: str):
                 "- Se o usuário pedir para gerar imagens, responda educadamente que o modelo atual selecionado não suporta."
             )
         }
+    
+def extract_text_from_pdf(pdf_path, max_pages=10):
+    text = []
+
+    with pdfplumber.open(pdf_path) as pdf:
+        for i, page in enumerate(pdf.pages):
+            if i >= max_pages:
+                break
+
+            page_text = page.extract_text()
+            if page_text:
+                text.append(page_text)
+
+    return "\n\n".join(text)
     
 def build_messages_for_perplexity(session_messages, model: str):
     return build_messages_for_openai(session_messages, model)
@@ -158,6 +183,93 @@ def build_messages_for_openai(session_messages, model: str):
 
 def build_messages_for_openrouter(session_messages, model: str):
     return build_messages_for_openai(session_messages, model)
+
+def build_messages_for_claude(session_messages):
+    messages = []
+
+    for m in session_messages:
+        role = m.get("role")
+        text = m.get("content", "")
+        attachments = m.get("attachments", [])
+
+        if role not in ("user", "assistant"):
+            role = "user"
+
+        content_blocks = []
+
+        if text:
+            content_blocks.append({
+                "type": "text",
+                "text": text
+            })
+
+        for att in attachments:
+            mimetype = getattr(att, "mimetype", None)
+            path = getattr(att, "path", None)
+            name = getattr(att, "name", "arquivo")
+
+            if not path or not os.path.exists(path):
+                continue
+
+            # 🖼️ IMAGEM
+            if mimetype and mimetype.startswith("image/"):
+                with open(path, "rb") as f:
+                    img_base64 = base64.b64encode(f.read()).decode("utf-8")
+
+                content_blocks.append({
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": mimetype,
+                        "data": img_base64
+                    }
+                })
+
+            # 📄 PDF → TEXTO
+            elif mimetype == "application/pdf":
+                pdf_text = extract_text_from_pdf(path)
+
+                if pdf_text.strip():
+                    content_blocks.append({
+                        "type": "text",
+                        "text": (
+                            f"[Conteúdo extraído do PDF '{name}']\n\n"
+                            f"{pdf_text}"
+                        )
+                    })
+                else:
+                    content_blocks.append({
+                        "type": "text",
+                        "text": f"[PDF '{name}' não contém texto extraível]"
+                    })
+
+        if not content_blocks:
+            continue
+
+        messages.append({
+            "role": role,
+            "content": content_blocks
+        })
+
+    return messages
+
+def send_with_retry_claude(messages, model, temperature, max_tokens=2048, retries=3):
+    last_error = None
+
+    for attempt in range(retries):
+        try:
+            return client_claude.messages.create(
+                model=model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens
+            )
+        except Exception as e:
+            last_error = e
+            print(f"[WARN] Claude tentativa {attempt+1}/{retries} falhou: {e}")
+            time.sleep(2)
+
+    raise last_error
 
 def make_request_with_retry(url, headers, body, max_retries=5, backoff=3):
     for attempt in range(max_retries):
@@ -531,6 +643,33 @@ def generate_text():
 
                 except Exception as e:
                     print(f"[ERROR] Falha ao salvar mensagem da IA (Gemini): {e}")
+            
+            elif is_claude_model(model):
+                try:
+                    print(f"[INFO] Enviando para Claude ({model})")
+
+                    claude_messages = build_messages_for_claude(session_messages)
+
+                    response = send_with_retry_claude(
+                        messages=claude_messages,
+                        model=model,
+                        temperature=temperature
+                    )
+
+                    generated_text = ""
+
+                    for block in response.content:
+                        if block.type == "text":
+                            generated_text += block.text
+
+                    uploaded_images = []  # Claude não gera imagem
+
+                    print(f"[INFO] Texto Claude gerado: {generated_text[:200]}")
+
+                except Exception as ce:
+                    print(f"[ERROR] Falha Claude: {ce}")
+                    generated_text = "[Erro ao gerar resposta da IA]"
+                    uploaded_images = []
 
 
             elif is_openrouter_model(model):

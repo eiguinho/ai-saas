@@ -12,6 +12,7 @@ export const TEXT_MODELS = [
   { value: "gpt-5-mini", label: "GPT-5 Mini", attachments: true, isGpt5: true },
   { value: "gpt-5-nano", label: "GPT-5 Nano", attachments: true, isGpt5: true },
   { value: "gpt-5.1", label: "GPT-5.1", attachments: true, isGpt5: true },
+  { value: "gpt-5.2", label: "GPT-5.2", attachments: true, isGpt5: true },
   { value: "deepseek/deepseek-r1-0528:free", label: "DeepSeek R1 0528", attachments: false, isGpt5: false },
   { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro", attachments: true, isGpt5: true },
   { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash", attachments: true, isGpt5: true },
@@ -21,6 +22,9 @@ export const TEXT_MODELS = [
   { value: "sonar-reasoning", label: "Sonar Reasoning", attachments: true, isGpt5: false },
   { value: "sonar-reasoning-pro", label: "Sonar Reasoning Pro", attachments: true, isGpt5: true },
   { value: "sonar-deep-research", label: "Sonar Deep Research", attachments: true, isGpt5: true },
+  { value: "claude-haiku-4-5-20251001", label: "Claude Haiku 4.5", attachments: true, isGpt5: false },
+  { value: "claude-sonnet-4-5-20250929", label: "Claude Sonnet 4.5", attachments: true, isGpt5: true },
+  { value: "claude-opus-4-5-20251101", label: "Claude Opus 4.5", attachments: true, isGpt5: true },
 ];
 
 export const IMAGE_MODELS = [
