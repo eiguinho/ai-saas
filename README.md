@@ -8,6 +8,24 @@ A aplicação contempla fluxos completos de autenticação, gerenciamento de pla
 
 Além da camada funcional, o desenvolvimento priorizou separação clara entre frontend e backend, componentização, reaproveitamento de código e manutenção de uma base preparada para evolução incremental de novas funcionalidades.
 
+## Preview da Aplicação
+
+### Dashboard
+
+<img src="assets/dashboard.jpeg" width="900"/>
+
+### Chat com Inteligência Artificial
+
+<img src="assets/chat.jpeg" width="900"/>
+
+### Geração de Imagens
+
+<img src="assets/image-generation.jpeg" width="900"/>
+
+### Geração de Vídeos
+
+<img src="assets/video-generation.jpeg" width="900"/>
+
 ## Principais Funcionalidades
 
 - Autenticação e gerenciamento de usuários  
