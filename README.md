@@ -24,7 +24,7 @@ Além da camada funcional, o desenvolvimento priorizou separação clara entre f
 
 ### Geração de Vídeos
 
-<img src="assets/video-generation.jpeg" width="900"/>
+<img src="assets/video-generation.png" width="900"/>
 
 ## Principais Funcionalidades
 
